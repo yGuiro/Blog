@@ -1,0 +1,100 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt_BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'css/reset.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/chat.css' %}" />
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css"
+        integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <link rel="shortcut icon" href="../../static/images/PROMOVA-ILIMITADA.png" type="image/x-icon">
+
+    <title>Bate-papo</title>
+</head>
+
+<body>
+    {% if user.is_authenticated %}
+        <input type="hidden" id="user" value="{{ user.id }}">
+    {% endif %}
+    <form action="" id="form">
+        <!-- MAIN -->
+        <div class="d-flex chat">
+            <div class="d-flex contats flex-column">
+                <div class="d-flex head">
+                    <a href="/">
+                        <img src="../../static/images/PROMOVA-ILIMITADA.png" alt="" width="55rem" class="m-3">
+                    </a>
+                    <p style="margin-left: 3%; margin-top: 10%; color: #ffd43b;">Página inicial</p>
+                </div>
+                <div style="color: #ffd43b; margin-left: 80px;">
+                    <h1>Olá {{ user.username }} </h1>
+                </div>
+                <!-- CONVERSAS -->
+                <div class="d-flex profiles">
+                    <p>Conversas</p>
+                    <input type="text" style="width: 22vw;
+                        border-radius: 20px;
+                        background-color: #3d3d3d;
+                        border: 1px solid #ffd43b;
+                        padding-left: 15px;
+                        margin-bottom: 10%;" placeholder="Pesquisar pessoas">
+                </div>
+                <!-- PESSOAS -->
+                {% for user in users %}
+                <div class=" d-flex contact-name mt-1">
+                    <img src="../../static/images/profile-img.png" alt="" class="ms-2 mb-3"
+                        style="border-radius: 65px;">
+                    <p class="d-flex align-items-center" style="margin-left: 5%; color: #ffd43b;">{{ user.username }}
+                    </p>
+                </div>
+                {% endfor %}
+            </div>
+            <!-- CONVERSA SELECIONADA -->
+            <div>
+                <div class="contat-info d-flex">
+                    <div class=" d-flex contact-name">
+                        <img src="../../static/images/profile-img.png" alt="" class="ms-2 mb-3"
+                            style="border-radius: 65px;">
+                        <p class="d-flex align-items-center" style="padding-left: 13%;">GUILHERME</p>
+                    </div>
+                </div>
+                <!-- DIGITAR MENSAGEM -->
+                <div class="center d-flex justify-content-end align-items-end">
+                    <div id="messages" style="overflow-y:auto!important;height: 77vh;" >
+
+                    </div>
+                </div>
+                <div class="d-flex message">
+                    <a class="btn anexo" >
+                        <i class="fa-solid fa-paperclip fa-xl" style="color: #ffd43b;"></i>
+                    </a>
+                    <input type="file" id="anexo" hidden>
+                    <input type="text" style="width: 45vw;
+                                            border-radius: 32px;
+                                            background-color: #3d3d3d;
+                                            border: 1px solid #ffe213;
+                                            color: #ffe213 !important;
+                                            padding-left: 12px !important;" placeholder="Mensagem..." name="message">
+                    <!-- ENVIAR -->
+                    <button class="btn" id="send">
+                        <i class="fa-solid fa-paper-plane fa-xl" style="color: #ffd43b;"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.6.4.js" integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E="crossorigin="anonymous"></script>
+<script src="../../static/js/chat.js"></script>
+</html>

@@ -1,0 +1,37 @@
+.body {
+    /* background-color: white !important; */
+    background-image: url('../images/background-vang.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+}
+
+.post-img {
+    width: 700px;
+}
+
+.logo {
+    width: 80px;
+}
+
+.text {
+    font-size: larger;
+}
+
+.nav {
+    background-color: #11101d;
+    display: flex;
+    justify-content: center;
+}
+
+.back {
+    margin: 10px;
+}
+
+
+@media screen and (max-width: 768px) {
+    .post-img {
+        width: 400px;
+        padding-right: 10px;
+    }
+}

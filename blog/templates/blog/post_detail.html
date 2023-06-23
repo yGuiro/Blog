@@ -1,0 +1,142 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt_BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="shortcut icon" href="../../static/images/PROMOVA-ILIMITADA.png" type="image/x-icon">
+
+        <!-- CSS  -->
+    <link rel="stylesheet" href="{% static 'css/reset.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/post_detail.css' %}" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>PromoBlog</title>
+</head>
+
+<body class="body">
+
+        <!-- SIDEBAR  -->
+        {% comment %} <div class="sidebar">
+        <div class="logo-content">
+            <div class="logo mb-5">
+                <img src="{% static 'images/PROMOVA-ILIMITADA.png' %}" id="btn">
+                <div class="logo-name">PromoBlog</div>
+                <!-- <i class="fa-solid fa-bars d-flex justify-content-end" id="btn"></i>  -->
+            </div>
+        </div>
+        <ul class="nav-list">
+
+                <!-- AJORS  -->
+                
+            <li title="AJORS">
+                <a href="https://sistema.universopromova.com.br/ajors/seguranca/" target="_blank">
+                    <img src="{% static 'images/logo-ajors.jpg' %}">
+                    <span class="links-name hide">Ajors</span>
+                </a>
+                    <!-- <span class="hide" class="tooltip">Dashboard</span>  -->
+                </li>
+
+                <!-- PAUTA  -->
+                
+                <li title="PAUTA.ME" class="mt-4">
+                    <a href="https://app.pauta.me/promova" target="_blank">
+                        <img src="{% static 'images/pauta.png' %}">
+                        <span class="links-name hide">Pauta.me</span>
+                    </a>
+                    <!-- <span class="tooltip hide">Dashboard</span>  -->
+                </li>
+
+                <!-- PRODUCAO  -->
+
+            <li title="PRODUÇÃO" class="mt-4">
+                <a href="https://producao.universopromova.com.br/" target="_blank">
+                    <img src="{% static 'images/producao.jpeg' %}">
+                    <span class="links-name hide">Produção</span>
+                </a>
+                <!-- <span class="tooltip hide">Dashboard</span>  -->
+            </li>
+
+            <!-- FAQ  -->
+            
+            <li title="SUPORTE" class="mt-4">
+                <a href="/suporte" target="_blank">
+                    <img src="{% static 'images/PictoGlpi-1.png' %}">
+                    <span class="links-name hide">Suporte</span>
+                </a>
+                <!-- <span class="tooltip hide">Dashboard</span>  -->
+            </li>
+
+            <!-- RH -->
+
+            {% if user.is_authenticated %}
+            <li title="Logoff" class="mt-4 ms-1">
+                    <a href="/admin/blog/post/add/">
+                        <i class="fa-solid fa-sheet-plastic fa-2x" style="color: #1a57c1;"></i>
+                        <!-- <img src="../../static/images/icon.png" alt=""> -->
+                        <span class="links-name hide">Formulário</span>
+                    </a>
+                </li> 
+                <li title="Logoff" class="mt-4 ms-1">
+                    <a href="/accounts/logout/?next=/">
+                        <i class="fa-solid fa-right-from-bracket fa-2x" style="color: #1a57c1;" ></i>
+                        <!-- <img src="../../static/images/icon.png" alt=""> -->
+                        <span class="links-name hide">Desconectar</span>
+                    </a>
+                </li> 
+            {% else %}
+                <li title="RH" class="mt-4">
+                    <a href="/admin/blog/post/">
+                        <img src="../../static/images/icon.png" alt="">
+                        <span class="links-name hide">RH</span>
+                    </a>
+                </li>   
+                {% endif %}
+            </ul>
+    </div> {% endcomment %}
+
+    <!-- navbar -->
+    <div class="nav">
+        <a href="/">
+                <img src="{% static 'images/PROMOVA-ILIMITADA.png' %}" alt="" class="back">
+            </a>
+        </div>
+
+    <!-- VOLTAR  -->
+    {% comment %} <div class="mt-3 back">
+        <a href="/">
+            <i class="fa-solid fa-arrow-left fa-2xl" style="color: #000000;"></i>
+        </a>
+    </div> {% endcomment %}
+    
+    <!-- CONTEUDO  -->
+    <div class="mt-3 container">
+        <div class="cont">
+            <div class="d-flex flex-column pt-1">
+                <h1>{{ post.title | upper }}</h1>
+                <h5><p>Por&nbsp;{{ post.author_post }} - {{ post.created_date }}</p></h5>
+            </div>
+            
+            <div class="d-flex">
+                <div class="d-flex box flex-column align-items-center">
+                    <img src="/media/{{ post.image }}" alt="" class="post-img">
+                </div>
+            </div>
+            
+            <div class="mt-5">
+                <h4>{{ post.text | safe }}</h4>
+            </div>
+        </div>
+</div>
+    </body>
+    
+    <!-- JS  -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.6.4.js" integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E=" crossorigin="anonymous"></script>
+<script src="{% static 'js/script.js' %}"></script>
+
+</html>
