@@ -8,12 +8,11 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from django.utils.timezone import localtime
 from model_utils.models import TimeStampedModel, SoftDeletableModel, SoftDeletableManager
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from typing import Optional, Any
 
 User = get_user_model()
-
-# Create your models here.
-
 
 class Post(models.Model):
     author_post = models.ForeignKey(User, default=None, on_delete=models.CASCADE, verbose_name='Autor')
@@ -40,11 +39,17 @@ class Post(models.Model):
 class Chat(models.Model):
     id = models.AutoField(primary_key=True)
     participants = models.ManyToManyField(User, related_name='chats', verbose_name='Participantes')
-    type_chat= models.CharField(choices=(('chat','chat'), ('group', 'group')),max_length=200, verbose_name='Tipo de chat')
+    type_chat= models.CharField(default='chat', choices=(('chat','chat'), ('group', 'group')),max_length=200, verbose_name='Tipo de chat')
     chat_logo= models.ImageField(upload_to='media/logo/', null=True, verbose_name='Imagem')
     group_name= models.CharField(max_length=200, verbose_name='Nome do grupo')
     created_date = models.DateTimeField(default=timezone.now, verbose_name='Data de criação')
-    updated_date = models.DateTimeField(default=timezone.now, verbose_name='Data de atualização')
+    updated_date = models.DateTimeField(auto_now=True, verbose_name='Data de atualização')
+
+    def get_last_message_date(self):
+        last_message = self.get_last_message()
+        if last_message:
+            return last_message.updated_date
+        return None
 
 class Message(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='Usuário')
@@ -52,11 +57,12 @@ class Message(models.Model):
     message = models.CharField(max_length=1024, verbose_name='Mensagem')
     state = models.CharField(max_length=200, verbose_name='Estado', default='unread', 
                                 choices=(('unread', 'Não lido'), ('read', 'Lido')))
+    user_read = models.ManyToManyField(User, related_name='user_read')
     message_type = models.CharField(max_length=200, verbose_name='Tipo de mensagem', default='text', choices=(
         ('text', 'Texto'), ('image', 'Imagem'), ('video', 'Vídeo'), ('audio', 'Áudio'), ('document', 'Documento'),
         ('archive', 'Arquivo')))
     archive = models.FileField(upload_to='uploads/', null=True, verbose_name='Arquivo')
-    updated_date = models.DateTimeField(default=timezone.now, verbose_name='Data de atualização')
+    updated_date = models.DateTimeField(auto_now=True, verbose_name='Data de atualização')
     created_date = models.DateTimeField(auto_now_add=True, verbose_name='Data de criação')
 
     class Meta:
@@ -65,3 +71,8 @@ class Message(models.Model):
 
     def __str__(self):
         return f'Mensagem por {self.user} em {self.created_date}'
+
+@receiver(post_save, sender=Message)
+def update_chat_updated_date(sender, instance, **kwargs):
+    instance.chat.updated_date = timezone.now()
+    instance.chat.save()

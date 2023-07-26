@@ -14,7 +14,7 @@
     <!-- BOOTSTRAP -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous" />
-    
+
     <!-- FONT AWESOME -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css"
         integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ=="
@@ -22,7 +22,7 @@
 
     <!-- SELECT2 -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    
+
     <!-- FAV ICON -->
     <link rel="shortcut icon" href="../../static/images/PROMOVA-ILIMITADA.png" type="image/x-icon">
     <title>Bate-papo</title>
@@ -58,27 +58,37 @@
                             <div class="d-flex justify-content-between">
                                 <p class="d-flex justify-content-between">Conversas</p>
                                 <i style="cursor: pointer;" class="fa-solid fa-plus me-2" style="color: #ffd43b;"
-                                    data-bs-toggle="modal" data-bs-target="#novaconversamodal" data-bs-whatever="@mdo"></i>
+                                    data-bs-toggle="modal" data-bs-target="#novaconversamodal"
+                                    data-bs-whatever="@mdo"></i>
                             </div>
                             <input type="text" placeholder="Pesquisar pessoas" id="input_search">
                         </div>
                         <!-- FIM PESQUISAR CONVERSAS -->
                         <hr style="border: 1px solid;">
                     </div>
-                    <!-- FIM MENU -->
-
                     <!-- CONVERSAS -->
-                    <div style="margin-top: 22rem;">
+                    <div style="margin-top: 25rem;" data-chat-id="{{ grupo.id }}">
                         {% for grupo in grupos %}
                         <div class="d-flex contact-name mt-1">
                             <a class="d-flex align-items-center links" style="margin-left: 5%; color: #ffd43b;"
                                 href="/chat/{{ grupo.id }}">
-                                <img src="/media/{{ grupo.chat_logo }}" alt="" class="ms-2 mb-3 logo_grupos"style="border-radius: 65px; width: 50px;">
+                                <img src="/media/{{ grupo.chat_logo }}" alt="" class="ms-2 mb-3 logo_grupos"
+                                    style="border-radius: 3rem; width: 3rem; max-height: 3rem;">
                             </a>
-                            <a class="d-flex align-items-center links" style="margin-left: 5%; color: #ffd43b;"
+                            <a class="d-flex align-items-center links " style="margin-left: 5%; color: #ffd43b;"
                                 href="/chat/{{ grupo.id }}">
-                                <p class="group_name">
+                                <p class="group_name me-3">
                                     {{ grupo.group_name }}
+                                    {% if grupo.id in conversas_nao_lidas %}
+                                    <p class="d-flex justify-content-center align-items-center" 
+                                       style="background-color: #ffd43b;
+                                              border-radius: 50%; 
+                                              padding: 4px; color: black; 
+                                              width: 1.5rem; 
+                                              height: 1.5rem;">
+                                        {{ conversas_nao_lidas|length }}
+                                    </p>
+                                    {% endif %}
                                 </p>
                             </a>
                         </div>
@@ -91,10 +101,10 @@
                 <!-- CONVERSA SELECIONADA -->
                 <div>
                     <div class="contat-info d-flex align-content-center">
-                        <div class=" d-flex contact-name">
+                        <div class=" d-flex contact-name align-items-center mb-3">
                             <div>
-                                <img src="/media/{{ logo|safe }}" alt="" class="ms-2 mb-3 logos"
-                                    style="border-radius: 65px; width: 60px;">
+                                <img src="/media/{{ logo|safe }}" alt="" class="ms-2 logos"
+                                style="border-radius: 3rem; width: 3rem; max-height: 3rem;">
                             </div>
                             <div class="d-flex flex-column ms-3">
                                 <p style="margin-bottom: 0 !important; font-size: 30px;">{{ group_name }}</p>
@@ -114,19 +124,29 @@
                             {% for mensagem in mensagens %}
                             <!-- VERIFICA SE O CHAT_ID DA MENSAGEM É IGUAL AO ID DA CONVERSA -->
                             {% if mensagem.chat_id.id == conversa.id %}
+                            <input type="hidden" value="{{conversa.id}}" name="input_read" id="input_read">
                             <!-- VERIFICA SE O USUÁRIO LOGADO É O MESMO QUE ENVIOU A MENSAGEM -->
                             {% if mensagem.user_id == user_logged.user %}
-                            
+
                             <!-- MENSAGEM ENVIADA -->
                             <div id="send" align="right">
                                 <!-- NOME DO USUÁRIO -->
                                 <div class="pe-4 nome">{{ mensagem.user__username }}</div>
                                 <!-- SE NÃO TIVER ARQUIVO -->
                                 {% if mensagem.archive == "" %}
+                                {% if mensagem.state == "unread" %}
                                 <p class="mensagens_send d-flex flex-column" style="margin-bottom: 0;">
                                     <!-- MENSAGEM DIGITADA -->
                                     {{ mensagem.message }}
+                                    <i class="fa-solid fa-check" style="color: #707070;"></i>
                                 </p>
+                                {% else %}
+                                <p class="mensagens_send d-flex flex-column" style="margin-bottom: 0;">
+                                    <!-- MENSAGEM DIGITADA -->
+                                    {{ mensagem.message }}
+                                    <i class="fa-solid fa-check" style="color: #1ad1ff;"></i>
+                                </p>
+                                {% endif %}
                                 {% else %}
                                 <!-- SE TIVER ARQUIVO -->
                                 <div class="flex-column">
@@ -135,8 +155,10 @@
                                         <!-- DOWNLOAD ARQUIVO -->
                                         <a href="/media/{{ mensagem.archive }}" download>
                                             <img src="../media/{{ mensagem.archive }}" alt="" hidden>
-                                            <span class="filename" data-extension="{{ mensagem.archive|slice:'-3:' }}"  style="font-size: smaller !important;"></span>
+                                            <span class="filename" data-extension="{{ mensagem.archive|slice:'-3:' }}"
+                                                style="font-size: smaller !important;"></span>
                                         </a>
+                                        
                                         <!-- ARQUIVO IMG -->
                                         <!-- <img src="../media/{{ mensagem.archive }}" alt="" hidden> -->
                                         <!-- ARQUIVO -->
@@ -147,7 +169,8 @@
                                 </p>
                                 {% endif %}
                                 <!-- DATA DA MENSAGEM -->
-                                <p style="margin-bottom: 0; font-weight: 600;" class="pe-4">{{ mensagem.created_date }}</p>
+                                <p style="margin-bottom: 0; font-weight: 600;" class="pe-4">{{ mensagem.created_date }}
+                                </p>
                             </div>
                             {% else %}
                             <!-- MENSAGEM RECEBIDA -->
@@ -159,9 +182,11 @@
                                 <p class="mensagens d-flex flex-column" style="margin-bottom: 0;">
                                     <!-- MENSAGEM DIGITADA -->
                                     {{ mensagem.message }}
+
                                 </p>
                                 <!-- DATA DA MENSAGEM -->
-                                <p style="margin-bottom: 0; font-weight: 600;" class="ps-4">{{ mensagem.created_date }}</p>
+                                <p style="margin-bottom: 0; font-weight: 600;" class="ps-4">{{ mensagem.created_date }}
+                                </p>
                                 {% else %}
                                 <!-- SE TIVER ARQUIVO -->
                                 <div class="flex-column">
@@ -170,7 +195,8 @@
                                         <!-- DOWNLOAD ARQUIVO -->
                                         <a href="/media/{{ mensagem.archive }}" download>
                                             <img src="../media/{{ mensagem.archive }}" alt="" hidden>
-                                            <span class="filename" data-extension="{{ mensagem.archive|slice:'-3:' }}"  style="font-size: smaller !important;"></span>
+                                            <span class="filename" data-extension="{{ mensagem.archive|slice:'-3:' }}"
+                                                style="font-size: smaller !important;"></span>
                                         </a>
                                         <!-- ARQUIVO IMG -->
                                         <!-- <img src="../media/{{ mensagem.archive }}" alt="" hidden> -->
@@ -178,10 +204,11 @@
                                         <!-- <span class="filename" data-extension="{{ mensagem.archive|slice:'-3:' }}"  style="font-size: smaller !important;"></span> -->
                                         <!-- MENSAGEM DIGITADA -->
                                         {{ mensagem.message }}
-                                    </div>
+                                </div>
                                 </p>
                                 <!-- DATA DA MENSAGEM -->
-                                <p style="margin-bottom: 0; font-weight: 600;" class="ps-4">{{ mensagem.created_date }}</p>
+                                <p style="margin-bottom: 0; font-weight: 600;" class="ps-4">{{ mensagem.created_date }}
+                                </p>
                                 {% endif %}
                             </div>
                             {% endif %}
@@ -189,20 +216,21 @@
                             {% endfor %}
                         </div>
                     </div>
-                    
+
                     <!-- FIM MENSAGENS -->
                     <!-- DIGITAR MENSAGEM -->
                     <div class="d-flex message">
                         <a class="btn anexo">
                             <i class="fa-solid fa-paperclip fa-xl" style="color: #ffd43b;"></i>
                         </a>
-                        <input type="file" id="anexo" hidden name="files[]" accept="image/png, image/jpeg, .pdf"> 
+                        <input type="file" id="anexo" hidden name="files[]" accept="image/png, image/jpeg, .pdf">
                         <input type="text" id="message_send" style="width: 45vw;
                                                 border-radius: 32px;
                                                 background-color: #3d3d3d;
                                                 border: 1px solid #ffe213;
                                                 color: #ffe213 !important;
-                                                padding-left: 12px !important;" placeholder="Mensagem..." name="message">
+                                                padding-left: 12px !important;" placeholder="Mensagem..."
+                            name="message">
 
                         <!-- ENVIAR -->
                         <button class="btn" id="sendMessage">
@@ -216,6 +244,47 @@
             </div>
         </div>
     </form>
+
+
+    <!-- MODAL NOVA CONVERSA -->
+    <div class="modal fade" id="novaconversamodal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="novaconversamodal">Nova Conversa</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="form-modal">
+                        <div class="mb-3">
+                            <label for="recipient-name" class="col-form-label">Nome da conversa:</label>
+                            <input type="text" class="form-control" id="recipient-name" name="nome_conversa">
+                        </div>
+                        <div class="d-flex flex-column mb-3">
+                            <label for="message-text" class="col-form-label">Participantes:</label>
+                            <select class="js-example-basic-multiple form-control mt-1" name="states[]"
+                                multiple="multiple" id="selectUsuarios">
+                                {% for user in users %}
+                                <option value="{{ user.id }}" {% if user.id == user_logado.id %} selected {% endif %}>
+                                    {{ user.username }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="message-text" class="col-form-label">Foto da conversa:</label>
+                            <input type="file" class="form-control" id="message-text" name="chat_logo">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary" id="modalButton">Criar conversa</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- FIM MODAL -->
 </body>
 
 {{ user_logged|json_script:"user_logado" }}
