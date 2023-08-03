@@ -1,0 +1,65 @@
+{% extends "account/base.html" %}
+
+{% load i18n %}
+{% load static %}
+{% load account socialaccount %}
+
+{% block head_title %}{% trans "Sign In" %}{% endblock %}
+
+{% block content %}
+
+
+{% get_providers as socialaccount_providers %}
+
+
+<form method="post" action="" style="width: 25rem !important; margin: auto;">
+  {% csrf_token %}
+  <img class="mb-4" src="{% static 'images/PROMOVA-ILIMITADA.png' %}" style="width: 5rem;" />
+  <h1 class="h3 mb-3 fw-normal">Entrar</h1>
+  <hr>
+  <!-- <div class="form-floating mb-3">
+    <input type="text" class="form-control" name="username" autofocus="" autocapitalize="none" autocomplete="username"
+      maxlength="150" required="" id="id_username" />
+    <label for="floatingInput">Usuario</label>
+  </div>
+  <div class="form-floating">
+    <input type="password" class="form-control" name="password" autofocus="" autocapitalize="none"
+      autocomplete="username" maxlength="150" required="" id="id_password" />
+    <label for="floatingPassword">Sua Senha</label>
+  </div> -->
+
+  {% if redirect_field_value %}
+  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+  {% endif %}
+  <div class="column w-100">
+    
+    <!-- <h6>ou entrar com</h6> -->
+    <!-- <div class="w-100 mt-3">
+      <div style="background-color: #202124; border-radius: 3px;" class="w-100">
+        {% if socialaccount_providers %}
+          <p>
+            {% include "socialaccount/snippets/provider_list.html" with process="login" %}
+          </p>
+        {% endif %}
+      </div>
+    </div> -->
+    <div>
+      <a title="Microsoft" class="btn btn-primary w-100 socialaccount_provider microsoft"
+        href="/accounts/microsoft/login/?process=login"
+        style="text-decoration: none; color: white; border-radius: 3px;">
+        <i class="fa-brands fa-windows fa-xl me-2" style="color: #ffffff;"></i>
+        Microsoft
+      </a>
+    </div>
+    <!-- <button class="btn btn-success btn-sm mt-3 mb-3 w-100" type="submit">{% trans "Sign In" %}</button> -->
+    <a class="btn btn-success btn-sm mt-3 mb-3 w-100" type="submit" href="/">Voltar</a>
+    <br>
+    <!-- <a href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a> -->
+    
+  </div>
+
+</form>
+
+
+
+{% endblock %}

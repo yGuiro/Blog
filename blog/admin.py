@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.contrib.auth.forms import UserChangeForm, UserCreationForm
+from django.contrib.auth.admin import UserAdmin
 from .models import *
 
 # Register your models here.
@@ -32,6 +34,6 @@ class MessageAdmin(admin.ModelAdmin):
 admin.site.register(Message, MessageAdmin)
 
 
-
-
 admin.site.site_header = 'Blog da Promova'
+
+

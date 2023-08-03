@@ -1,0 +1,22 @@
+/* body {
+    background-image: url('../images/fundo.png');
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.form-control {
+    width: 30rem !important;
+    height: 30rem !important;
+    margin: auto;
+} */
+
+li {
+    list-style: none;
+    
+}
+
+.btn-primary {
+    background-color: #35363a !important;
+    border-color: #35363a !important;
+}

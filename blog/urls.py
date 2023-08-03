@@ -5,7 +5,8 @@ from . import views
 
 urlpatterns = [
     path('', views.post_list, name='post_list'),  
-    path('accounts/', include('django.contrib.auth.urls')),
+    # path('accounts/', include('django.contrib.auth.urls')),
+    path('accounts/', include('allauth.urls')), # new
     path('suporte', views.suporte, name='suporte'),
     path('ckeditor/', include('ckeditor_uploader.urls')),
     path('baton/', include('baton.urls')),
@@ -16,5 +17,6 @@ urlpatterns = [
     path('criar_conversa/', views.criar_conversa, name='criar_conversa'),
     path('mensagem_lida/<str:conversa>/', views.mensagem_lida, name='mensagem_lida'),
     path('obter_mensagens/<int:chat_id>/', views.obter_mensagens, name='obter_mensagens'),
+    path('obter_conversas/', views.obter_conversas, name='obter_conversas'),
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) 

@@ -50,7 +50,7 @@
                             <p style="margin-left: 3%; margin-top: 1rem; color: #ffd43b;">Página inicial</p>
                         </div>
                         <div style="color: #ffd43b;" class="d-flex justify-content-center" id="nome_user">
-                            <h1>Olá {{ user.username }} </h1>
+                            <h1>Olá {{ user.first_name }} </h1>
                         </div>
 
                         <!-- PESQUISAR CONVERSAS -->
@@ -64,7 +64,7 @@
                             <input type="text" placeholder="Pesquisar pessoas" id="input_search">
                         </div>
                         <!-- FIM PESQUISAR CONVERSAS -->
-                        <hr style="border: 1px solid;">
+                        <!-- <hr style="border: 1px solid;"> -->
                     </div>
                     <!-- CONVERSAS -->
                     <div style="margin-top: 25rem;" data-chat-id="{{ grupo.id }}">
@@ -110,7 +110,7 @@
                                 <p style="margin-bottom: 0 !important; font-size: 30px;">{{ group_name }}</p>
                                 <div class="d-flex">
                                     {% for participante in participantes %}
-                                    <h5 class="me-2" style="font-size: 15px;">{{ participante.username }},</h5>
+                                    <h5 class="me-2" style="font-size: 15px;">{{ participante.first_name }},</h5>
                                     {% endfor %}
                                 </div>
                             </div>
@@ -120,100 +120,7 @@
                     <!-- MENSAGENS -->
                     <div class="center d-flex justify-content-end align-items-end">
                         <div id="messages" style="overflow-y:auto!important;height: 77.7vh;width:100%;">
-                            <!-- PARA CADA MENSAGEM EM MENSAGENS -->
-                            {% for mensagem in mensagens %}
-                            <!-- VERIFICA SE O CHAT_ID DA MENSAGEM É IGUAL AO ID DA CONVERSA -->
-                            {% if mensagem.chat_id.id == conversa.id %}
-                            <input type="hidden" value="{{conversa.id}}" name="input_read" id="input_read">
-                            <!-- VERIFICA SE O USUÁRIO LOGADO É O MESMO QUE ENVIOU A MENSAGEM -->
-                            {% if mensagem.user_id == user_logged.user %}
-
-                            <!-- MENSAGEM ENVIADA -->
-                            <div id="send" align="right">
-                                <!-- NOME DO USUÁRIO -->
-                                <div class="pe-4 nome">{{ mensagem.user__username }}</div>
-                                <!-- SE NÃO TIVER ARQUIVO -->
-                                {% if mensagem.archive == "" %}
-                                {% if mensagem.state == "unread" %}
-                                <p class="mensagens_send d-flex flex-column" style="margin-bottom: 0;">
-                                    <!-- MENSAGEM DIGITADA -->
-                                    {{ mensagem.message }}
-                                    <i class="fa-solid fa-check" style="color: #707070;"></i>
-                                </p>
-                                {% else %}
-                                <p class="mensagens_send d-flex flex-column" style="margin-bottom: 0;">
-                                    <!-- MENSAGEM DIGITADA -->
-                                    {{ mensagem.message }}
-                                    <i class="fa-solid fa-check" style="color: #1ad1ff;"></i>
-                                </p>
-                                {% endif %}
-                                {% else %}
-                                <!-- SE TIVER ARQUIVO -->
-                                <div class="flex-column">
-                                    <p class="mensagens_send d-flex flex-column" style="margin-bottom: 0;">
-                                        <img src="../media/{{ mensagem.archive }}" alt="">
-                                        <!-- DOWNLOAD ARQUIVO -->
-                                        <a href="/media/{{ mensagem.archive }}" download>
-                                            <img src="../media/{{ mensagem.archive }}" alt="" hidden>
-                                            <span class="filename" data-extension="{{ mensagem.archive|slice:'-3:' }}"
-                                                style="font-size: smaller !important;"></span>
-                                        </a>
-                                        
-                                        <!-- ARQUIVO IMG -->
-                                        <!-- <img src="../media/{{ mensagem.archive }}" alt="" hidden> -->
-                                        <!-- ARQUIVO -->
-                                        <!-- <span class="filename" data-extension="{{ mensagem.archive|slice:'-3:' }}"  style="font-size: smaller !important;"></span> -->
-                                        <!-- MENSAGEM DIGITADA -->
-                                        {{ mensagem.message }}
-                                    </div>
-                                </p>
-                                {% endif %}
-                                <!-- DATA DA MENSAGEM -->
-                                <p style="margin-bottom: 0; font-weight: 600;" class="pe-4">{{ mensagem.created_date }}
-                                </p>
-                            </div>
-                            {% else %}
-                            <!-- MENSAGEM RECEBIDA -->
-                            <div id="receive" align="left">
-                                <!-- NOME DO USUÁRIO -->
-                                <div class="ps-4 nome">{{ mensagem.user__username }}</div>
-                                <!-- SE NÃO TIVER ARQUIVO -->
-                                {% if mensagem.archive == "" %}
-                                <p class="mensagens d-flex flex-column" style="margin-bottom: 0;">
-                                    <!-- MENSAGEM DIGITADA -->
-                                    {{ mensagem.message }}
-
-                                </p>
-                                <!-- DATA DA MENSAGEM -->
-                                <p style="margin-bottom: 0; font-weight: 600;" class="ps-4">{{ mensagem.created_date }}
-                                </p>
-                                {% else %}
-                                <!-- SE TIVER ARQUIVO -->
-                                <div class="flex-column">
-                                    <p class="mensagens d-flex flex-column" style="margin-bottom: 0;">
-                                        <img src="../media/{{ mensagem.archive }}" alt="">
-                                        <!-- DOWNLOAD ARQUIVO -->
-                                        <a href="/media/{{ mensagem.archive }}" download>
-                                            <img src="../media/{{ mensagem.archive }}" alt="" hidden>
-                                            <span class="filename" data-extension="{{ mensagem.archive|slice:'-3:' }}"
-                                                style="font-size: smaller !important;"></span>
-                                        </a>
-                                        <!-- ARQUIVO IMG -->
-                                        <!-- <img src="../media/{{ mensagem.archive }}" alt="" hidden> -->
-                                        <!-- ARQUIVO -->
-                                        <!-- <span class="filename" data-extension="{{ mensagem.archive|slice:'-3:' }}"  style="font-size: smaller !important;"></span> -->
-                                        <!-- MENSAGEM DIGITADA -->
-                                        {{ mensagem.message }}
-                                </div>
-                                </p>
-                                <!-- DATA DA MENSAGEM -->
-                                <p style="margin-bottom: 0; font-weight: 600;" class="ps-4">{{ mensagem.created_date }}
-                                </p>
-                                {% endif %}
-                            </div>
-                            {% endif %}
-                            {% endif %}
-                            {% endfor %}
+                            <!-- Mensagens serão renderizadas via jQuery -->
                         </div>
                     </div>
 
@@ -223,7 +130,7 @@
                         <a class="btn anexo">
                             <i class="fa-solid fa-paperclip fa-xl" style="color: #ffd43b;"></i>
                         </a>
-                        <input type="file" id="anexo" hidden name="files[]" accept="image/png, image/jpeg, .pdf">
+                        <input type="file" id="anexo" class="file-input" hidden name="files[]" accept="*">
                         <input type="text" id="message_send" style="width: 45vw;
                                                 border-radius: 32px;
                                                 background-color: #3d3d3d;
@@ -232,9 +139,12 @@
                                                 padding-left: 12px !important;" placeholder="Mensagem..."
                             name="message">
 
+                            <!-- NOME DO ARQUIVO -->
+                            <div id="file-name-placeholder" style="color: white; "></div>
+
                         <!-- ENVIAR -->
                         <button class="btn" id="sendMessage">
-                            <i class="fa-solid fa-paper-plane fa-xl" style="color: #ffd43b;"></i>
+                            <i class="fa-solid fa-paper-plane fa-xl" style="color: #ffd43b; margin-left: 0;"></i>
                         </button>
                         <!-- FIM ENVIAR -->
                     </div>
@@ -265,7 +175,7 @@
                             <select class="js-example-basic-multiple form-control mt-1" name="states[]"
                                 multiple="multiple" id="selectUsuarios">
                                 {% for user in users %}
-                                <option value="{{ user.id }}" {% if user.id == user_logado.id %} selected {% endif %}>
+                                <option value="{{ user.id }}" {% if is_user_logado %} selected {% endif %}>
                                     {{ user.username }}
                                 </option>
                                 {% endfor %}
@@ -288,13 +198,20 @@
 </body>
 
 {{ user_logged|json_script:"user_logado" }}
+<!-- DAYJS -->
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1.10.6/dayjs.min.js"></script>
+<!-- BOOTSTRAP -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
     crossorigin="anonymous"></script>
+<!-- JQUERY -->
 <script src="https://code.jquery.com/jquery-3.6.4.js" integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E="
     crossorigin="anonymous"></script>
+<!-- SWEETALERT2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- SELECT2 -->
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<!-- JS -->
 <script src="../../static/js/chat.js"></script>
 <script>
     $('#exampleModal #create').click(function () {

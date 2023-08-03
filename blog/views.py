@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from django.db.models import Q
 from sqlite3 import IntegrityError
 from django.shortcuts import render
 from django.utils import timezone
@@ -15,6 +16,8 @@ from django.contrib.auth import views as auth_views
 from django.shortcuts import *
 from django.http import JsonResponse
 from django.db.models import Max, Count, F
+from django.core.serializers import serialize
+from datetime import datetime
 import uuid
 
 def post_list(request):
@@ -76,6 +79,12 @@ def chat(request, conversa=None):
         state='unread'
     ).exclude(user_id=request.user.id).values_list('chat_id', flat=True).distinct()
     context['conversas_nao_lidas'] = mensagens_nao_lidas
+    # context = {
+    #     'user': context['users'],  # O usuário específico da mensagem
+    #     'user_logado': context['user_logged'],  # O usuário logado
+    #     'is_user_logado': context['users'] == context['user_logged']  # Variável booleana que indica se é o usuário logado ou não
+    # }
+
 
     return render(request, 'blog/chat.html', context) 
 
@@ -164,3 +173,29 @@ def obter_mensagens(request, chat_id):
         return JsonResponse(list(mensagens), safe=False)
     except Chat.DoesNotExist:
         return JsonResponse({'error': 'Conversa não encontrada'}, status=404)
+    
+def obter_conversas(request):
+    # Consulte o banco de dados para obter as conversas atualizadas
+    grupos = Chat.objects.all()  # Supondo que você tenha um modelo chamado Grupo que representa as conversas
+
+    # Crie uma lista para armazenar os dados das conversas
+    conversas = []
+    for grupo in grupos:
+        # Adicione os dados relevantes de cada conversa à lista
+        conversas.append({
+            'id': grupo.id,
+            'group_name': grupo.group_name,
+            'chat_logo': grupo.chat_logo.url,  # Supondo que chat_logo seja um campo FileField ou ImageField
+            # Adicione outros campos relevantes, se necessário
+        })
+    
+    mensagens = Message.objects.filter(chat_id=chat_id)
+    formatted_messages = []
+    for mensagem in mensagens:
+        formatted_message = serialize('json', [mensagem])
+        formatted_message = json.loads(formatted_message)[0]
+        formatted_message['fields']['created_date'] = mensagem.created_date.strftime('%d/%m/%Y %H:%M')
+        formatted_messages.append(formatted_message)
+
+    # Retorne os dados como JSON
+    return JsonResponse(conversas, safe=False)

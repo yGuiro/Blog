@@ -47,6 +47,10 @@ INSTALLED_APPS = [
     'baton',
     'django.contrib.admin',
     'baton.autodiscover',
+    'allauth', # new
+    'allauth.account', # new
+    'allauth.socialaccount', # new
+    'allauth.socialaccount.providers.microsoft',
 ]
 
 ASGI_APPLICATION = 'mysite.asgi.application'
@@ -63,12 +67,19 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
+
+AUTHENTICATION_BACKENDS = (
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+)
+
+
 ROOT_URLCONF = 'mysite.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['blog/templates'],
+        'DIRS': [str(BASE_DIR) + '/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -76,6 +87,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                
             ],
         },
     },
@@ -84,7 +96,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'mysite.wsgi.application'
 ASGI_APPLICATION = 'mysite.asgi.application'
 
-CSRF_TRUSTED_ORIGINS = ['http://3.98.69.16:4035', 'http://3.98.69.16','https://promova.blog','http://promova.blog', 'https://promova.blog/','http://promova.blog/' ]
+CSRF_TRUSTED_ORIGINS = ['https://promoblog.promoclick.digital', 'https://promoblog.promoclick.digital/']
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
@@ -96,9 +108,7 @@ DATABASES = {
         "PASSWORD": "artBlog2023django",
         "HOST": "127.0.0.1",
         "PORT":"3306",
-        "OPTIONS": {
-            'sql_mode': 'STRICT_TRANS_TABLES',
-        },
+    
 }
 }
 
@@ -172,12 +182,39 @@ CKEDITOR_UPLOAD_PATH = "uploads/"
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": 'channels.layers.InMemoryChannelLayer',
-        # 'CONFIG' : {
-        #     'hosts': [('127.0.0.1', 6379)],
-        # }
+        'CONFIG' : {
+            'hosts': [('127.0.0.1', 6379)],
+        }
     },
 }
 
-CLIENT_ID = '1b936af9-dc20-4ee1-87c0-f19058980b93'
-CLIENT_SECRET = 'seu_client_secret'
-AUTHORITY = 'https://login.microsoftonline.com/c061ce50-1e2a-4b72-a723-156c81034f41'
+LOGIN_URL = '/acounts/login/'
+# LOGIN_URL = '/accounts/microsoft/login/;'
+LOGIN_REDIRECT_URL = 'post_list'
+
+#EMAIL BACKEND OFFICE
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.office365.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'desenvolvimento@promovabr.com'
+EMAIL_HOST_PASSWORD = 'fmjk*9813'
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'desenvolvimento@promovabr.com'
+
+
+SOCIALACCOUNT_PROVIDERS = {
+    'microsoft': {
+        'TENANT': 'organizations',
+        'REDIRECT_URI': 'https://promoblog.promoclick.digital/accounts/microsoft/login/callback/',
+        'SCOPE': [
+            'User.Read',
+            'User.ReadBasic.All',
+        ],
+        
+        'ACCOUNT_DEFAULT_HTTP_PROTOCOL': 'https',
+        
+    }
+}
+
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'
+

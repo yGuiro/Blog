@@ -29,32 +29,6 @@ $(document).ready(function () {
     $(this).html('<i class="' + iconClass + '"></i> ' + filename);
   });
 
-  function getIconClass(extension) {
-    var iconClass = "";
-
-    switch (extension) {
-      case "pdf":
-        iconClass = "fa-solid fa-file-pdf fa-2xl";
-        break;
-      case "doc":
-      case "docx":
-        iconClass = "fa-solid fa-file-word fa-2xl";
-        break;
-      case "xls":
-      case "xlsx":
-        iconClass = "fa-solid fa-file-excel fa-2xl";
-        break;
-      case "ppt":
-      case "pptx":
-        iconClass = "fa-solid fa-file-powerpoint fa-2xl";
-        break;
-      default:
-        iconClass = "fa-solid fa-file fa-2xl";
-        break;
-    }
-
-    return iconClass;
-  }
 
   $(".anexo").click(function () {
     $("#anexo").click();
@@ -68,6 +42,13 @@ $(document).ready(function () {
 $("#anexo").change(function (e) {
   // Armazenamento do arquivo selecionado no objeto "file"
   file = e.target.files[0];
+
+  // Exibir o nome do arquivo selecionado no elemento HTML
+  if (file) {
+    $("#file-name-placeholder").text(file.name);
+  } else {
+    $("#file-name-placeholder").text(""); // Se nenhum arquivo for selecionado, limpar o texto
+  }
 });
 
 let form = document.getElementById("form");
@@ -84,6 +65,8 @@ form.addEventListener("submit", function (e) {
   } else {
     send_to = 1;
   }
+
+
 
   if (message === "" && file == null) {
     Swal.fire({
@@ -115,11 +98,18 @@ form.addEventListener("submit", function (e) {
     contentType: false,
     success: function (data) {
       if (data.status) {
-        location.reload();
+        // location.reload();
+        $("#anexo").val(null);
+        $("#file-name-placeholder").text("");
+        file = null;
+        
       }
     },
   });
   form.reset();
+  $("#anexo").wrap('<form>').closest('form').get(0).reset();
+  $("#anexo").unwrap();
+  
 });
 
 var selectElement = document.getElementById("selectUsuarios");
@@ -178,13 +168,138 @@ function marcarUltimaMensagemLida() {
   }
 }
 
-// Chama a função para marcar a última mensagem como lida ao abrir a conversa
-marcarUltimaMensagemLida();
+$(document).ready(function () {
+  // Chamar a função para marcar a última mensagem como lida
+  marcarUltimaMensagemLida();
+  // Definir o intervalo de atualização das mensagens (por exemplo, 5 segundos)
+  setInterval(function () {
+      obterMensagens();
+  }, 5000);
+});
 
 
-// const messageIdToMarkAsRead = chatId;
-// marcarMensagemLida(messageIdToMarkAsRead);
+
+// Função para obter as mensagens do servidor
+function obterMensagens() {
+  $.ajax({
+      url: `/obter_mensagens/${chatId}/`,
+      type: "GET",
+      dataType: "json",
+      success: function (data) {
+          // Chamar a função para exibir as novas mensagens
+          mostrarNovasMensagens(data);
+      },
+      error: function (error) {
+          console.error("Erro ao obter mensagens:", error);
+      },
+  });
+}
+console.log(obterMensagens());
+
+// Função para exibir as novas mensagens recebidas do servidor
+function mostrarNovasMensagens(data) {
+  // Se o servidor retornar um array de mensagens, iteramos sobre ele
+  if (Array.isArray(data)) {
+      var mensagensDiv = $("#messages");
+      mensagensDiv.empty(); 
+
+
+      // Ordenar as mensagens com base na data, da mais recente para a mais antiga
+      data.sort(function(a, b) {
+        return new Date(a.created_date) - new Date(b.created_date);
+      });
+
+      var inputRead = $("input[name='input_read']").val(); // Capturar o ID da conversa do input hidden
+      var userLogged = "{{ user_logged.user }}"; // Capturar o ID do usuário logado
+
+      data.forEach(function (mensagem) {
+
+
+          // Verificar se o chat_id da mensagem é igual ao ID da conversa
+          if (mensagem.chat_id == inputRead) {
+              var messageHTML = ''; // Variável para armazenar a estrutura HTML da mensagem
+              
+              var dataFormatada = mensagem.created_date ? dayjs(mensagem.created_date).format('DD/MM/YYYY HH:mm') : '';
+              // Verificar se o usuário logado é o mesmo que enviou a mensagem
+              if (mensagem.user_id == USER_ID) {
+                
+                  // MENSAGEM ENVIADA
+                  messageHTML += '<div id="send" align="right">';
+                  messageHTML += '<div class="pe-4 nome">';
+                  messageHTML += mensagem.user__username;
+                  messageHTML += '</div>';
+
+                  // Verificar se a mensagem possui arquivo ou é apenas texto
+                  if (mensagem.archive == "") {
+                    if (mensagem.state == "unread") {
+                      messageHTML += '<p class="mensagens_send d-flex flex-column-reverse" style="margin-bottom: 0;" id="mensagem_j"><i class="fa-solid fa-check" style="color: gray;"></i>';
+                    } else {
+                      messageHTML += '<p class="mensagens_send d-flex flex-column-reverse" style="margin-bottom: 0;"><i class="fa-solid fa-check" style="color: #1ad1ff;"></i>';
+                    }
+                      messageHTML += mensagem.message;
+                      // messageHTML += '<i class="fa-solid fa-check" style="color: #1ad1ff;"></i>';
+                      messageHTML += '</p>';
+                    } else {
+                      // Caso possua arquivo
+                      messageHTML += '<div class="flex-column">';
+                      messageHTML += '<p class="mensagens_send d-flex flex-column" style="margin-bottom: 0;">';
+                      messageHTML += '<img src="../media/' + mensagem.archive + '" alt="">';
+                      messageHTML += '<a href="/media/' + mensagem.archive + '" download>';
+                      messageHTML += '<img src="../media/' + mensagem.archive + '" alt="" hidden>';
+                      messageHTML += '<span class="filename" data-extension="' + mensagem.archive.slice(-3) + '" style="font-size: medium !important; word-wrap: break-word !important; overflow-wrap: break-word !important;">' + mensagem.archive.slice(8) + '</span>';
+                      messageHTML += '<i class=" ms-2 fa-regular fa-circle-down fa-2xl" style="color: #f8bf00;"></i>';
+                      messageHTML += '</a>';
+                      messageHTML += mensagem.message;
+                      messageHTML += '</p>';
+                      messageHTML += '</div>';
+                    }
+                    
+                  messageHTML += '<p style="margin-bottom: 0; font-weight: 600;" class="pe-4">';
+                  messageHTML += dataFormatada;
+                  messageHTML += '</p>';
+                  messageHTML += '</div>';
+              } else {
+                  // MENSAGEM RECEBIDA
+                  messageHTML += '<div id="receive" align="left">';
+                  messageHTML += '<div class="ps-4 nome">';
+                  messageHTML += mensagem.user__username;
+                  messageHTML += '</div>';
+
+                  // Verificar se a mensagem possui arquivo ou é apenas texto
+                  if (mensagem.archive == "") {
+                      messageHTML += '<p class="mensagens d-flex flex-column" style="margin-bottom: 0;">';
+                      messageHTML += mensagem.message;
+                      messageHTML += '</p>';
+                  } else {
+                      // Caso possua arquivo
+                      messageHTML += '<div class="flex-column">';
+                      messageHTML += '<p class="mensagens d-flex flex-column" style="margin-bottom: 0;">';
+                      messageHTML += '<img src="../media/' + mensagem.archive + '" alt="">';
+                      messageHTML += '<a href="/media/' + mensagem.archive + '" download>';
+                      messageHTML += '<img src="../media/' + mensagem.archive + '" alt="" hidden>';
+                      messageHTML += '<span class="filename" data-extension="' + mensagem.archive.slice(-3) + '" style="font-size: medium !important; word-wrap: break-word !important; overflow-wrap: break-word !important;>' + mensagem.archive.slice(8) + '</span>';
+                      messageHTML += '<i class=" ms-2 fa-regular fa-circle-down fa-2xl" style="color: #f8bf00;"></i>';
+                      messageHTML += '</a>';
+                      messageHTML += mensagem.message;
+                      messageHTML += '</p>';
+                      messageHTML += '</div>';
+                  }
+                  messageHTML += '<p style="margin-bottom: 0; font-weight: 600;" class="ps-4">';
+                  messageHTML += dataFormatada;
+                  messageHTML += '</p>';
+                  messageHTML += '</div>';
+              }
+
+              // Adicionar a mensagem na div de mensagens
+              mensagensDiv.append(messageHTML);
+          }
+      });
+
+      // Rolar para a parte inferior para exibir as novas mensagens
+      var messagesContainer = document.getElementById("messages");
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+}
 
 const messagesContainer = document.getElementById("messages");
-
 messagesContainer.scrollTop = messagesContainer.scrollHeight;
