@@ -1,39 +1,66 @@
 # -*- coding: utf-8 -*-
 from django.db.models import Q
-from sqlite3 import IntegrityError
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from .models import *
-import pandas as pd
 import json 
+from blog.models import *
 import traceback
 from django.contrib.auth.models import User
-from .forms import post_form
-from django.contrib import admin
-from django.contrib.auth.views import LoginView
-from django.contrib.auth import views as auth_views
-from django.shortcuts import *
 from django.http import JsonResponse
 from django.db.models import Max, Count, F
 from django.core.serializers import serialize
-from datetime import datetime
-import uuid
+import traceback
+#send_mail
+from django.core.mail import *
+from newsapi import NewsApiClient
+import requests
+import urllib.request
 
 def post_list(request):
 
-    posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('-published_date')
+    context = {}
+
+    posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('-published_date').values('author_post__first_name', 'author_post__last_name', 'author_post__username', 'author_post__email', 'author_post__id', 'summary', 'image', 'title', 'text', 'created_date', 'published_date', 'id', 'assunto')
 
     return render(request, 'blog/post_list.html', {'posts' : posts})
 
 def suporte(request):
     return render(request, 'blog/suporte.html')
 
-def post_detail(request, pk):
-    post = get_object_or_404(Post, pk=pk)
-    return render(request, 'blog/post_detail.html', {'post': post})
+@login_required(login_url='/accounts/login/')
+def post_detail(request, post_id, assunto=None):
+    try:
+        post = get_object_or_404(Post, id=post_id, published_date__lte=timezone.now())
+        
+        apikey = "7e35c628d0e0377d70c8fdb628deade4"
+        assunto = post.assunto
+        url = f"https://gnews.io/api/v4/search?q={assunto}&lang=pt&country=br&max=3&apikey={apikey}"
 
-@login_required(login_url='admin/login')
+        response = requests.get(url)
+        
+        news_articles = []
+        if response.status_code == 200:
+            news_articles = response.json().get('articles', [])
+
+        context = {
+            'post': post,
+            'news': news_articles,
+        }
+
+        return render(request, 'blog/post_detail.html', context)
+    except Post.DoesNotExist:
+        return JsonResponse({'error': 'Post não encontrado'}, status=404)
+    except requests.exceptions.RequestException:
+        context = {
+            'post': post,
+            'news': [],  # ou deixe vazio se preferir
+            'api_error': True,
+        }
+        return render(request, 'blog/post_detail.html', context)
+
+@login_required(login_url='/accounts/login/')
 def chat(request, conversa=None):
     context = {}
     if conversa:
@@ -64,8 +91,6 @@ def chat(request, conversa=None):
     )
 
     context['grupos'] = grupos
-
-
     context['users'] = User.objects.all()
     context['user_logged'] = {'user':request.user.id, 'chat': conversa}
     context['grupos'] = Chat.objects.filter(participants=request.user.id).values('group_name', 'chat_logo', 'id').order_by('-updated_date') 
@@ -79,12 +104,6 @@ def chat(request, conversa=None):
         state='unread'
     ).exclude(user_id=request.user.id).values_list('chat_id', flat=True).distinct()
     context['conversas_nao_lidas'] = mensagens_nao_lidas
-    # context = {
-    #     'user': context['users'],  # O usuário específico da mensagem
-    #     'user_logado': context['user_logged'],  # O usuário logado
-    #     'is_user_logado': context['users'] == context['user_logged']  # Variável booleana que indica se é o usuário logado ou não
-    # }
-
 
     return render(request, 'blog/chat.html', context) 
 
@@ -199,3 +218,44 @@ def obter_conversas(request):
 
     # Retorne os dados como JSON
     return JsonResponse(conversas, safe=False)
+
+def abrir_chamado(request):
+    
+    try:
+        if request.method == "POST":
+            remetente = request.POST.get("remetente")
+            assunto = request.POST.get("assunto")
+            mensagem = request.POST.get("mensagem_corpo")
+            anexo = request.FILES.get("anexo") 
+            userName = ["suporte@promoclick.digital"]
+
+            try:
+                mail = EmailMessage(assunto, mensagem, remetente, userName)
+                if anexo:
+                    mail.attach(anexo)
+                mail.send()
+                print("Email enviado com sucesso!")
+                return JsonResponse({"message": "E-mail enviado com sucesso."})
+            except Exception as e:
+                print("Falha ao enviar email!")
+                print(e)
+        return JsonResponse({"message": "E-mail enviado com sucesso."})
+    except Exception as e:
+        print(traceback.format_exc())
+        return JsonResponse({'status': False}, status=400)
+
+def teste(request):
+    newsapi = NewsApiClient(api_key='ca8bb59ef0a7431b96ef09d19081d601')
+    top_headlines = newsapi.get_top_headlines(sources='google-news-br')
+    all_articles = newsapi.get_everything(sources='google-news-br', language='pt')
+    sources = newsapi.get_sources()
+    print(top_headlines)
+
+    context = {
+        'top_headlines': top_headlines,
+        'all_articles': all_articles,
+        'sources': sources,
+    }
+
+
+    return render(request, 'blog/teste.html', context)

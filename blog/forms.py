@@ -2,10 +2,6 @@ from .models import *
 from django import forms
 
 class post_form(forms.ModelForm):
-
-    '''
-    Formulario de cadastro de empresa, dados Basicos
-    '''
     class Meta:
         model = Post
         fields = ('title', 'text', 'author_post')

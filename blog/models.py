@@ -13,6 +13,7 @@ User = get_user_model()
 
 class Post(models.Model):
     author_post = models.ForeignKey(User, default=None, on_delete=models.CASCADE, verbose_name='Autor')
+    assunto = models.CharField(max_length=200, verbose_name='Categoria')
     summary = models.TextField(verbose_name='Resumo')
     image = models.ImageField(upload_to='media/', null=True, verbose_name='Imagem')
     title = models.CharField(max_length=200, verbose_name='Título')

@@ -209,8 +209,8 @@ function mostrarNovasMensagens(data) {
         return new Date(a.created_date) - new Date(b.created_date);
       });
 
-      var inputRead = $("input[name='input_read']").val(); // Capturar o ID da conversa do input hidden
-      var userLogged = "{{ user_logged.user }}"; // Capturar o ID do usuário logado
+      var inputRead = $("input[name='input_read']").val();
+      var userLogged = "{{ user_logged.user }}";
 
       data.forEach(function (mensagem) {
 
@@ -232,9 +232,9 @@ function mostrarNovasMensagens(data) {
                   // Verificar se a mensagem possui arquivo ou é apenas texto
                   if (mensagem.archive == "") {
                     if (mensagem.state == "unread") {
-                      messageHTML += '<p class="mensagens_send d-flex flex-column-reverse" style="margin-bottom: 0;" id="mensagem_j"><i class="fa-solid fa-check" style="color: gray;"></i>';
+                      messageHTML += '<p class="mensagens_send d-flex flex-column-reverse" style="margin-bottom: 0; word-wrap: break-word !important; overflow-wrap: break-word !important;" id="mensagem_j"><i class="fa-solid fa-check" style="color: gray;"></i>';
                     } else {
-                      messageHTML += '<p class="mensagens_send d-flex flex-column-reverse" style="margin-bottom: 0;"><i class="fa-solid fa-check" style="color: #1ad1ff;"></i>';
+                      messageHTML += '<p class="mensagens_send d-flex flex-column-reverse" style="margin-bottom: 0; word-wrap: break-word !important; overflow-wrap: break-word !important;"><i class="fa-solid fa-check" style="color: #1ad1ff;"></i>';
                     }
                       messageHTML += mensagem.message;
                       // messageHTML += '<i class="fa-solid fa-check" style="color: #1ad1ff;"></i>';
@@ -261,13 +261,13 @@ function mostrarNovasMensagens(data) {
               } else {
                   // MENSAGEM RECEBIDA
                   messageHTML += '<div id="receive" align="left">';
-                  messageHTML += '<div class="ps-4 nome">';
+                  messageHTML += '<div class="ps-4 nome" style="word-wrap: break-word !important; overflow-wrap: break-word !important;">';
                   messageHTML += mensagem.user__username;
                   messageHTML += '</div>';
 
                   // Verificar se a mensagem possui arquivo ou é apenas texto
                   if (mensagem.archive == "") {
-                      messageHTML += '<p class="mensagens d-flex flex-column" style="margin-bottom: 0;">';
+                      messageHTML += '<p class="mensagens d-flex flex-column" style="margin-bottom: 0; word-wrap: break-word !important; overflow-wrap: break-word !important;">';
                       messageHTML += mensagem.message;
                       messageHTML += '</p>';
                   } else {
@@ -277,7 +277,7 @@ function mostrarNovasMensagens(data) {
                       messageHTML += '<img src="../media/' + mensagem.archive + '" alt="">';
                       messageHTML += '<a href="/media/' + mensagem.archive + '" download>';
                       messageHTML += '<img src="../media/' + mensagem.archive + '" alt="" hidden>';
-                      messageHTML += '<span class="filename" data-extension="' + mensagem.archive.slice(-3) + '" style="font-size: medium !important; word-wrap: break-word !important; overflow-wrap: break-word !important;>' + mensagem.archive.slice(8) + '</span>';
+                      messageHTML += '<span class="filename" data-extension="' + mensagem.archive.slice(-3) + '" style="font-size: medium !important; word-wrap: break-word !important; overflow-wrap: break-word !important;">' + mensagem.archive.slice(8) + '</span>';
                       messageHTML += '<i class=" ms-2 fa-regular fa-circle-down fa-2xl" style="color: #f8bf00;"></i>';
                       messageHTML += '</a>';
                       messageHTML += mensagem.message;
@@ -300,6 +300,7 @@ function mostrarNovasMensagens(data) {
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
   }
 }
+
 
 const messagesContainer = document.getElementById("messages");
 messagesContainer.scrollTop = messagesContainer.scrollHeight;

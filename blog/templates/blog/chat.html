@@ -29,7 +29,6 @@
 </head>
 
 <body>
-    <!-- <input type="hidden" placeholder="{{ csrf_token }}"> -->
     {% if user.is_authenticated %}
     <input type="hidden" id="user" value="{{ user_logged }}">
     {% endif %}

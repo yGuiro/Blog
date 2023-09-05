@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>News Site</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+        }
+        .articles {
+            flex: 2;
+            padding-right: 20px;
+        }
+        .sidebar {
+            flex: 1;
+        }
+        .article {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+        .source {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>News Site</h1>
+    </header>
+    <div class="container">
+        <div class="articles">
+            <h2>Top Headlines</h2>
+            <ul class="article-list">
+                {% for headline in top_headlines.articles %}
+                    <li class="article">
+                        <h3>{{ headline.title }}</h3>
+                        <p>{{ headline.description }}</p>
+                    {% if headline.urlToImage %}
+                        <img src="{{ headline.urlToImage }}" alt="{{ headline.title }}">
+                    {% endif %}
+                        <a href="{{ headline.url }}" target="_blank">Read more</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="container">
+        <div class="articles">
+            <h2>All Articles</h2>
+            <ul class="article-list">
+                {% for article in all_articles.articles %}
+                    <li class="article">
+                        <h3>{{ article.title }}</h3>
+                        <p>{{ article.description }}</p>
+                        <a href="{{ article.url }}" target="_blank">Read more</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
