@@ -1,72 +1,209 @@
+{% load static %}
+
 <!DOCTYPE html>
-<html>
+<html lang="pt_BR">
+
 <head>
-    <title>News Site</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        header {
-            background-color: #333;
-            color: white;
-            padding: 10px;
-            text-align: center;
-        }
-        .container {
-            display: flex;
-            justify-content: space-between;
-            padding: 20px;
-        }
-        .articles {
-            flex: 2;
-            padding-right: 20px;
-        }
-        .sidebar {
-            flex: 1;
-        }
-        .article {
-            border-bottom: 1px solid #ddd;
-            padding: 10px 0;
-        }
-        .source {
-            margin: 5px;
-        }
-    </style>
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'css/reset.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/chatWS.css' %}" />
+
+    <!-- BOOTSTRAP -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous" />
+
+    <!-- FONT AWESOME -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css"
+        integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <!-- SELECT2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+    <!-- FAV ICON -->
+    <link rel="shortcut icon" href="{% static 'images/PROMOCLICK.ico' %}" type="image/x-icon">
+    <title>Chat</title>
 </head>
+
 <body>
-    <header>
-        <h1>News Site</h1>
-    </header>
-    <div class="container">
-        <div class="articles">
-            <h2>Top Headlines</h2>
-            <ul class="article-list">
-                {% for headline in top_headlines.articles %}
-                    <li class="article">
-                        <h3>{{ headline.title }}</h3>
-                        <p>{{ headline.description }}</p>
-                    {% if headline.urlToImage %}
-                        <img src="{{ headline.urlToImage }}" alt="{{ headline.title }}">
-                    {% endif %}
-                        <a href="{{ headline.url }}" target="_blank">Read more</a>
-                    </li>
-                {% endfor %}
-            </ul>
+    {% if user.is_authenticated %}
+    <input type="hidden" id="user" value="{{ user_logged }}">
+    {% endif %}
+    <section class="grid grid-template-areas-1">
+        <div class="item logo">
+            <a href="/">
+                <p>INÍCIO</p>
+                <!-- <img src="{% static 'images/click-logo.png' %}" alt="" style="width: 4rem;"> -->
+            </a>
+            <h2>Olá {{ user.first_name }} </h2>
+        </div>
+        <div class="item nav d-flex align-items-center align-content-center">
+            <!-- <img src="/media/" alt="" class="ms-2 me-2 logos" id="chatLogo" style="border-radius: 3rem; width: 3rem; max-height: 3rem;"> -->
+            <div id="chatLogo">
+
+            </div>
+            <div class="d-flex flex-column align-items-start ">
+                <h3 style="color: #000;" class="chat-name" id="group_name"></h3>
+                <div class="d-flex align-items-center">
+                    <div class="me-2 d-flex" style="color: #000;" id="participants"></div>
+                </div>
+            </div>
+            <div class="d-flex me-5" style="position: fixed; right: 0;">
+                <i title="Editar chat" class="fa-regular fa-pen-to-square fa-xl justify-content-end" style="color: #63E6BE; cursor: pointer;" data-bs-toggle="modal"
+                data-bs-target="#exampleModal2"></i>
+            </div>
+        </div> 
+                <div class="item sidenav">
+                    <div class="d-flex align-items-center justify-content-center mt-2">
+                        <p class="me-2">Criar novo chat</p>
+                        <i title="Criar novo chat" class="fa-solid fa-circle-plus fa-xl" style="color: #74C0FC; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#novaconversamodal"
+                        data-bs-whatever="@mdo"></i>
+                    </div>
+                    <div>
+                    {% for grupo in grupos %}
+                        <div class="grupo" id="{{ grupo.id }}" data-chat="{{ grupo.id }}">
+                            <a href="{{ grupo.id }}" class="ms-3 mt-1" data-grupo="{{ grupo.id }}">
+                                <div class="d-flex" style="color: #181313;">
+                                    <img src="/media/{{ grupo.chat_logo }}" alt="" class="ms-3 mb-3 logo_grupos" style="border-radius: 3rem; width: 3rem; max-height: 3rem;">
+                                    <div class="d-flex flex-column ms-3">
+                                        <h5 class="d-flex justify-content-start" style="color: aliceblue;">{{ grupo.group_name }}</h5>
+                                        <p class="last-message d-flex text">
+                                            <div class="last-sender d-flex" id="{{ grupo.id }}" style="color: #b9b9b9 !important; max-width: 15rem !important;white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important;">
+                                                {% if grupo.last_sender %}
+                                                    <p class="d-flex" style="color: #b9b9b9;">{{ grupo.last_sender_name }} : {{ grupo.last_sender.message }}</p>
+                                                {% else %}
+                                                    <p class="d-flex" style="color: #b9b9b9;">Sem mensagens ainda</p>
+                                                {% endif %}
+                                            </div>
+                                        </p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="item content" id="content">
+            <div id="chat-log" style="clear:both;">
+                <!-- AS MENSAGENS SÃO GERADAS AQUI -->
+            </div>
+        </div>
+        <div class="item footer d-flex align-items-center justify-content-between">
+            <input id="chat-message-input" type="text" class="mensagem" placeholder="Mensagem">
+            <input type="file" class="upload file-input" id="anexo" name="files[]" accept="*" hidden>
+            <a class="btn anexo">
+                <i class="fa-solid fa-paperclip fa-xl"style="color: #183153;"></i>
+            </a>
+            <button id="chat-message-submit" class="form-control btn" style="width: 5rem;">
+                <i class="fa-regular fa-paper-plane fa-xl" style="color: #183153;"></i>
+            </button>
+        </div>
+    </section>
+    
+        <!-- MODAL NOVA CONVERSA -->
+        <div class="modal fade" id="novaconversamodal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="novaconversamodal">Novo Chat</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="form-modal">
+                            {% csrf_token %}
+                            <input type="hidden" id="user" value="{{ user.id }}" name="user">
+                            <div class="mb-3">
+                                <label for="recipient-name" class="col-form-label">Nome do Chat:</label>
+                                <input type="text" class="form-control" id="recipient-name" name="nome_conversa" required>
+                            </div>
+                            <div class="d-flex flex-column mb-3">
+                                <label for="message-text" class="col-form-label">Participantes:</label>
+                                <select class="js-example-basic-multiple form-control mt-1" name="states[]"
+                                    multiple="multiple" id="selectUsuarios">
+                                    {% for user in users %}
+                                    <option value="{{ user.id }}" {% if user.id == user_logged %} selected {% endif %}>
+                                        {{ user.username }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="message-text" class="col-form-label">Foto da conversa:</label>
+                                <input type="file" class="form-control" id="message-text" name="chat_logo" required>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                        <button type="button" class="btn btn-primary" id="modalButton">Criar conversa</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- FIM MODAL -->
+
+        <!-- MODAL EDITAR CONVERSA -->
+    <div class="modal fade" id="exampleModal2" tabindex="-1" aria-labelledby="exampleModalLabel2" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="d-flex flex-column">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel2">Editar Chat</h1>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formEdit">
+                        <div class="d-flex flex-column mb-3">
+                            <div class="mb-3">
+                                <label for="recipient-name" class="col-form-label">Nome da conversa:</label>
+                                <input type="text" class="form-control" id="recipient-name" name="group_name"
+                                    placeholder="{{ group_name }}">
+                            </div>
+                            <label for="message-text" class="col-form-label">Participantes:</label>
+                            <select class="js-example-basic-multiple aaa form-control mt-1" name="states[]"
+                                multiple="multiple" id="selectUsuarios2">
+                                {% for user in users %}
+                                <option value="{{ user.id }}" {% if user in editChat %}selected{% else %}not-selected{% endif %}>
+                                    {{ user.username }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="mb-3">
+                                <label for="message-text" class="col-form-label">Foto da conversa:</label>
+                                <input type="file" class="form-control" id="message-text" name="group_image" >
+                            </div>
+                    </form>
+            </div>
+            <div class="modal-footer">
+                    <button type="button" class="btn" title="Excluir conversa" id="btnDelete">
+                        <i class="fa-solid fa-trash fa-xl" style="color: #df2a2a;"></i>
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary" id="btnEdit">Salvar</button>
+            </div>
         </div>
     </div>
-    <div class="container">
-        <div class="articles">
-            <h2>All Articles</h2>
-            <ul class="article-list">
-                {% for article in all_articles.articles %}
-                    <li class="article">
-                        <h3>{{ article.title }}</h3>
-                        <p>{{ article.description }}</p>
-                        <a href="{{ article.url }}" target="_blank">Read more</a>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
     </div>
+    <!-- FIM MODAL -->
 </body>
+{{ user_logged|json_script:"user_logado" }}
+<!-- DAYJS -->
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1.10.6/dayjs.min.js"></script>
+<!-- BOOTSTRAP -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
+    crossorigin="anonymous"></script>
+<!-- JQUERY -->
+<script src="https://code.jquery.com/jquery-3.6.4.js" integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E="
+    crossorigin="anonymous"></script>
+<!-- SWEETALERT2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- SELECT2 -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<!-- SCRIPT -->
+<script src="{% static 'js/chatWS.js' %}"></script>
+
 </html>

@@ -1,30 +1,41 @@
 # -*- coding: utf-8 -*-
-from django.db.models import Q
-from django.shortcuts import render, get_object_or_404
-from django.utils import timezone
-from django.contrib.auth.decorators import login_required
-from .models import *
 import json 
-from blog.models import *
+import requests
 import traceback
-from django.contrib.auth.models import User
+import urllib.request
+from .models import *
+from blog.models import *
+from django.core.mail import *
+from django.db.models import Q
+from django.utils import timezone
+from newsapi import NewsApiClient
 from django.http import JsonResponse
 from django.db.models import Max, Count, F
+from django.contrib.auth import login
+from django.contrib.auth.models import User
 from django.core.serializers import serialize
-import traceback
-#send_mail
-from django.core.mail import *
-from newsapi import NewsApiClient
-import requests
-import urllib.request
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import render, get_object_or_404, redirect
+
 
 def post_list(request):
 
     context = {}
 
     posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('-published_date').values('author_post__first_name', 'author_post__last_name', 'author_post__username', 'author_post__email', 'author_post__id', 'summary', 'image', 'title', 'text', 'created_date', 'published_date', 'id', 'assunto')
+    
+    context['posts'] = posts
 
-    return render(request, 'blog/post_list.html', {'posts' : posts})
+    if request.user.is_authenticated:
+        unread_messages = Message.objects.filter(
+            chat__participants=request.user, 
+            state='unread'
+        ).exclude(user=request.user)
+        context['unread_messages'] = unread_messages.count()
+    # print(context['unread_messages'])
+    return render(request, 'blog/post_list.html', context)
 
 def suporte(request):
     return render(request, 'blog/suporte.html')
@@ -63,13 +74,19 @@ def post_detail(request, post_id, assunto=None):
 @login_required(login_url='/accounts/login/')
 def chat(request, conversa=None):
     context = {}
+    chat = None
+
     if conversa:
         conversa_id = conversa
-        if not Chat.objects.filter(id=conversa_id, participants=request.user).exists():
+        chat = Chat.objects.filter(id=conversa_id, participants=request.user).first()
+
+        if chat is None:
             return JsonResponse({'error': 'Acesso negado'})
 
-        chat = Chat.objects.get(id=conversa_id)
-        mensagens = chat.message_set.filter(state='unread').exclude(user_id=request.user.id).order_by('-created_date')
+        mensagens = Message.objects.filter(
+            chat=chat,
+            state='unread'
+        ).exclude(user=request.user).order_by('-created_date')
 
         for mensagem in mensagens:
             mensagem.state = 'read'
@@ -77,35 +94,30 @@ def chat(request, conversa=None):
             mensagem.save()
 
         context['conversa'] = "teste " + conversa
-        conversa_selec = Chat.objects.get(id=conversa_id)
-        context['group_name'] = conversa_selec.group_name
-        context['participantes'] = conversa_selec.participants.all()
+        context['group_name'] = chat.group_name
+        context['participantes'] = chat.participants.all()
+    
+    if chat:
+        context['chat_image'] = chat.chat_logo
 
+    context['chats'] = Chat.objects.order_by(F('updated_date').desc())
     context['users'] = User.objects.all()
     context['user_logged'] = {'user': request.user.id, 'chat': conversa}
-    context['grupos'] = Chat.objects.filter(participants=request.user.id).annotate(num_mensagens_nao_lidas=Count('message__id', filter=Q(message__state='unread'))).order_by('-message__created_date')
     context['conversa_id'] = Chat.objects.filter(participants=request.user.id).values_list('id', flat=True).first()
 
     grupos = Chat.objects.filter(participants=request.user.id).annotate(
         last_message_date=Max('message__created_date')
-    )
+    ).order_by('-updated_date')
 
     context['grupos'] = grupos
-    context['users'] = User.objects.all()
-    context['user_logged'] = {'user':request.user.id, 'chat': conversa}
-    context['grupos'] = Chat.objects.filter(participants=request.user.id).values('group_name', 'chat_logo', 'id').order_by('-updated_date') 
-    context['conversa_id'] = Chat.objects.filter(participants=request.user.id).values_list('id', flat=True).first()
     context['conversas'] = Chat.objects.filter(participants=request.user.id).values()
-    context['conversa_selec'] = Chat.objects.filter(participants=request.user.id).values_list('group_name', flat=True).first()
-    context['mensagens'] = Message.objects.filter(chat_id=conversa).values('message', 'user_id', 'user__username', 'chat_id', 'created_date', 'archive', 'state')
-    context['logo'] = Chat.objects.filter(id=conversa).values_list('chat_logo', flat=True).first()
-    mensagens_nao_lidas = Message.objects.filter(
-        chat__participants=request.user,
-        state='unread'
-    ).exclude(user_id=request.user.id).values_list('chat_id', flat=True).distinct()
-    context['conversas_nao_lidas'] = mensagens_nao_lidas
 
-    return render(request, 'blog/chat.html', context) 
+    context['conversa_selec'] = chat.group_name if chat else None
+
+    if chat is not None:
+        context['editChat'] = chat.participants.all()
+
+    return render(request, 'blog/chat.html', context)
 
 def salvar_mensagem(request):
     try:
@@ -138,10 +150,13 @@ def criar_conversa(request):
             nome_conversa = request.POST.get('nome_conversa')
             chat_logo = request.FILES.get('chat_logo')
             manada = request.POST.getlist('states[]')
+            owner = request.POST.get('user')
+            print(owner)
 
             novo_chat = Chat.objects.create(
                 group_name=nome_conversa,
                 chat_logo=chat_logo,
+                owner_id=owner
             )       
 
             # Adiciona os participantes à relação many-to-many usando o método set()
@@ -188,7 +203,7 @@ def mensagem_lida(request, conversa=None):
 def obter_mensagens(request, chat_id):
     try:
         chat = Chat.objects.get(id=chat_id)
-        mensagens = Message.objects.filter(chat=chat).values('id', 'message', 'user_id', 'user__username', 'created_date', 'archive', 'state')
+        mensagens = Message.objects.filter(chat=chat).values('id', 'message', 'user_id', 'user__username', 'created_date', 'archive', 'state', 'user__first_name', 'user__last_name')
         return JsonResponse(list(mensagens), safe=False)
     except Chat.DoesNotExist:
         return JsonResponse({'error': 'Conversa não encontrada'}, status=404)
@@ -244,18 +259,161 @@ def abrir_chamado(request):
         print(traceback.format_exc())
         return JsonResponse({'status': False}, status=400)
 
-def teste(request):
-    newsapi = NewsApiClient(api_key='ca8bb59ef0a7431b96ef09d19081d601')
-    top_headlines = newsapi.get_top_headlines(sources='google-news-br')
-    all_articles = newsapi.get_everything(sources='google-news-br', language='pt')
-    sources = newsapi.get_sources()
-    print(top_headlines)
+def newMessages(request, chat_id):
+    try:
+        chat = Chat.objects.get(id=chat_id)
+        mensagens = Message.objects.filter(chat=chat).values('id', 'message', 'user_id', 'user__username', 'created_date', 'archive', 'state')
+        return JsonResponse(list(mensagens), safe=False)
+    except Chat.DoesNotExist:
+        return JsonResponse({'error': 'Conversa não encontrada'}, status=404)
 
-    context = {
-        'top_headlines': top_headlines,
-        'all_articles': all_articles,
-        'sources': sources,
-    }
+    return render(request, 'blog/chat.html', context)
+
+def editar_conversa(request, chat_id):
+    try:
+        chat = Chat.objects.get(id=chat_id)
+        owner_name = chat.owner.first_name + " " + chat.owner.last_name
+        print(owner_name)
+        context = {
+            'owner_name': owner_name,
+        }
+        print(context)
+        if request.user != chat.owner:
+            return JsonResponse({'status': False, 'error': 'Você não tem permissão para editar esta conversa.'}, status=403)
+        if request.user.id == chat.owner_id:
+            if request.method == 'POST':
+                
+                participantes_ids = request.POST.getlist('states[]')
+                if participantes_ids:
+                    chat.participants.set(participantes_ids)
+                
+                group_image = request.FILES.get('group_image')
+                if group_image:
+                    chat.chat_logo = group_image
+                
+                group_name = request.POST.get('group_name')
+                if group_name:
+                    chat.group_name = group_name
+                
+                chat.save()
+                
+                # return render(request, 'blog/chat.html', context)
+                return JsonResponse({'status': True, 'context': context})
+            else:
+                return JsonResponse({'status': False, 'error': 'Método inválido'}, status=400)
+        else:
+            print("Não é o dono")
+    except Chat.DoesNotExist:
+        return JsonResponse({'status': False, 'error': 'Conversa não encontrada'}, status=404)
+    except User.DoesNotExist:
+        return JsonResponse({'status': False, 'error': 'Usuário não encontrado'}, status=404)
+    except Exception as e:
+        print(traceback.format_exc())
+        return JsonResponse({'status': False, 'error': 'Ocorreu um erro inesperado'}, status=500)
+
+def excluir_conversa(request, chat_id):
+    try:
+        chat = Chat.objects.get(id=chat_id)
+        if request.user != chat.owner:
+            return JsonResponse({'status': False, 'error': 'Você não tem permissão para excluir esta conversa.'}, status=403)
+        if request.user.id == chat.owner_id:
+            chat.delete()
+            return JsonResponse({'status': True})
+        else:
+            return JsonResponse({'status': False, 'error': 'Você não tem permissão para excluir esta conversa.'}, status=403)
+    except Chat.DoesNotExist:
+        return JsonResponse({'status': False, 'error': 'Conversa não encontrada'}, status=404)
+    except Exception as e:
+        print(traceback.format_exc())
+        return JsonResponse({'status': False, 'error': 'Ocorreu um erro inesperado'}, status=500)
+
+@login_required(login_url='/accounts/login/')
+def chatWS(request, chat_id=None, conversa=None):
+    context = {}
+    chat = None
+
+    context['user_logged'] = request.user.id
+    
+    if chat_id:
+        chat = Chat.objects.filter(id=chat_id, participants=request.user).first()
+        if chat:
+            # print(f"Chat ID: {chat.id}")
+            # print(chat)
+            context['chat_image'] = chat.chat_logo
+            if chat.group_name:
+                context['group_name'] = chat.group_name
+            else:
+                print("group_name is empty for chat with id " + str(chat.id))
+        else:
+            print("Chat is None") 
+        context['chats'] = Chat.objects.order_by(F('updated_date').desc())
+        context['users'] = User.objects.all()
+        context['conversa_id'] = Chat.objects.filter(participants=request.user.id).values_list('id', flat=True).first()
+
+    grupos = Chat.objects.filter(participants=request.user.id).annotate(
+        last_message_date=Max('message__created_date')
+    ).order_by('-updated_date')
+
+    if chat is None:
+        # Redireciona para chat_home se chat for None
+        return chat_home(request)
+        
+    if conversa:
+        conversa_id = conversa
+        chat = Chat.objects.filter(id=conversa_id, participants=request.user).first()
+    context['participantes'] = chat.participants.all()
+    for grupo in grupos:
+        grupo.lastMessage = Message.objects.filter(chat_id=grupo.id).values('message', 'user_id', 'user__username', 'created_date', 'archive', 'state', 'user__first_name', 'user__last_name').order_by('-created_date').first()
+        grupo.last_sender = Message.objects.filter(chat_id=grupo.id).order_by('-created_date').first()
+        if grupo.last_sender is not None:
+            grupo.last_sender_name = grupo.last_sender.user.first_name + " " + grupo.last_sender.user.last_name
+        # print(f"Grupo ID: {grupo.id}, Last Message: {grupo.lastMessage}, Last Sender: {grupo.last_sender}")
+    
+    context['grupos'] = grupos
+    context['conversas'] = Chat.objects.filter(participants=request.user.id).values()
+    context['conversa_selec'] = chat.group_name if chat else None
 
 
+    if chat is not None:
+        context['editChat'] = chat.participants.all()
+    
+    context['last_sender'] = Message.objects.filter(chat_id=chat_id).order_by('-created_date').first()
+    print(context['last_sender'])
+    
     return render(request, 'blog/teste.html', context)
+
+@login_required(login_url='/accounts/login/')
+def chat_home (request, chat_id=None, conversa=None):
+    context = {}
+    chat = None
+
+    context['user_logged'] = request.user.id
+    
+    grupos = Chat.objects.filter(participants=request.user.id).annotate(
+        last_message_date=Max('message__created_date')
+    ).order_by('-updated_date')
+    
+        
+    if conversa:
+        conversa_id = conversa
+        chat = Chat.objects.filter(id=conversa_id, participants=request.user).first()
+    
+    for grupo in grupos:
+        grupo.lastMessage = Message.objects.filter(chat_id=grupo.id).values('message', 'user_id', 'user__username', 'created_date', 'archive', 'state', 'user__first_name', 'user__last_name').order_by('-created_date').first()
+        grupo.last_sender = Message.objects.filter(chat_id=grupo.id).order_by('-created_date').first()
+        if grupo.last_sender is not None:
+            grupo.last_sender_name = grupo.last_sender.user.first_name + " " + grupo.last_sender.user.last_name
+        print(f"Grupo ID: {grupo.id}, Last Message: {grupo.lastMessage}, Last Sender: {grupo.last_sender}")
+    
+    context['grupos'] = grupos
+    context['conversas'] = Chat.objects.filter(participants=request.user.id).values()
+    context['conversa_selec'] = chat.group_name if chat else None
+
+
+    if chat is not None:
+        context['editChat'] = chat.participants.all()
+    
+    context['last_sender'] = Message.objects.filter(chat_id=chat_id).order_by('-created_date').first()
+    print(context['last_sender'])
+    
+    return render(request, 'blog/chat_home.html', context)

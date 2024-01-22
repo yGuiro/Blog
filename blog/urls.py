@@ -2,6 +2,8 @@ from django.urls import path, re_path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from . import views
+from mysite.consumers import MyConsumer
+from mysite.routing import websocket_urlpatterns
 
 urlpatterns = [
     path('', views.post_list, name='post_list'),  
@@ -18,5 +20,12 @@ urlpatterns = [
     path('obter_mensagens/<int:chat_id>/', views.obter_mensagens, name='obter_mensagens'),
     path('obter_conversas/', views.obter_conversas, name='obter_conversas'),
     path('abrir_chamado/', views.abrir_chamado, name='abrir_chamado'),
-    path('teste/', views.teste, name='teste'),
+    path('newMessages/<int:chat_id>/', views.newMessages, name='newMessages'),
+    path('editar_conversa/<int:chat_id>/', views.editar_conversa, name='editar_conversa'),
+    path('excluir_conversa/<int:chat_id>/', views.excluir_conversa, name='excluir_conversa'),
+    path('ws/chat/', views.chatWS, name='chatw'),
+    path('ws/chat/<int:chat_id>', views.chatWS, name='chatw'),
+    path('chat_home/', views.chat_home, name='chat_home'),
+    # re_path(r'^ws/', include('mysite.routing.websocket_urlpatterns')),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) 

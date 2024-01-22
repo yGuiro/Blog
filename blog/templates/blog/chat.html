@@ -24,8 +24,8 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
     <!-- FAV ICON -->
-    <link rel="shortcut icon" href="../../static/images/PROMOVA-ILIMITADA.png" type="image/x-icon">
-    <title>Bate-papo</title>
+    <link rel="shortcut icon" href="{% static 'images/PROMOCLICK.ico' %}" type="image/x-icon">
+    <title>Chat</title>
 </head>
 
 <body>
@@ -42,11 +42,15 @@
                 <div class="d-flex contats flex-column messages_scrollbar" style="overflow-y: scroll;">
                     <!-- MENU -->
                     <div id="header">
-                        <div class="d-flex head">
-                            <a href="/">
-                                <img src="../../static/images/PROMOVA-ILIMITADA.png" alt="" width="55rem">
+                        <div class="d-flex head" style="margin-left: 0 !important;">
+                            <a href="/" class="d-flex flex-row align-items-center" style="width: 11rem;">
+                                <img src="{% static 'images/click-logo.png' %}" alt="" width="55rem">
+                                <!-- <i class="fa-solid fa-arrow-right fa-rotate-180" style="color: #ffd43b;"></i> -->
+                                <p style="margin-left: 1rem; margin-top: 1rem; color: #ffd43b; padding: 0;">Página inicial</p>
                             </a>
-                            <p style="margin-left: 3%; margin-top: 1rem; color: #ffd43b;">Página inicial</p>
+                                <!-- <p class="d-flex align-items-center ms-4 mt-3" style="cursor: pointer;">
+                                    <i class="fa-solid fa-moon fa-xl" style="color: #ffffff;"></i>
+                                </p> -->
                         </div>
                         <div style="color: #ffd43b;" class="d-flex justify-content-center" id="nome_user">
                             <h1>Olá {{ user.first_name }} </h1>
@@ -60,15 +64,14 @@
                                     data-bs-toggle="modal" data-bs-target="#novaconversamodal"
                                     data-bs-whatever="@mdo"></i>
                             </div>
-                            <input type="text" placeholder="Pesquisar pessoas" id="input_search">
+                            <hr style="border: 1px solid;">
                         </div>
                         <!-- FIM PESQUISAR CONVERSAS -->
-                        <!-- <hr style="border: 1px solid;"> -->
                     </div>
                     <!-- CONVERSAS -->
-                    <div style="margin-top: 25rem;" data-chat-id="{{ grupo.id }}">
+                    <div data-chat-id="{{ grupo.id }}" class="conv" id="con">
                         {% for grupo in grupos %}
-                        <div class="d-flex contact-name mt-1">
+                        <div class="d-flex contact-name mt-1" id="{{ grupo.id }}" data-updated-at="{{ grupo.updated_date.isoformat }}">
                             <a class="d-flex align-items-center links" style="margin-left: 5%; color: #ffd43b;"
                                 href="/chat/{{ grupo.id }}">
                                 <img src="/media/{{ grupo.chat_logo }}" alt="" class="ms-2 mb-3 logo_grupos"
@@ -76,35 +79,31 @@
                             </a>
                             <a class="d-flex align-items-center links " style="margin-left: 5%; color: #ffd43b;"
                                 href="/chat/{{ grupo.id }}">
-                                <p class="group_name me-3">
-                                    {{ grupo.group_name }}
-                                    {% if grupo.id in conversas_nao_lidas %}
-                                    <p class="d-flex justify-content-center align-items-center" 
-                                       style="background-color: #ffd43b;
-                                              border-radius: 50%; 
-                                              padding: 4px; color: black; 
-                                              width: 1.5rem; 
-                                              height: 1.5rem;">
-                                        {{ conversas_nao_lidas|length }}
+                                <div title="{{ grupo.group_name }}" class="group_name me-3 d-flex">
+                                    <p>
+                                        {{ grupo.group_name }}
                                     </p>
-                                    {% endif %}
-                                </p>
+                                    <div class="notification">
+                                    </div>
+                                </div>
                             </a>
+                            <!-- <i class="fa-solid fa-trash" style="color: #e52424;"></i> -->
                         </div>
                         {% endfor %}
                     </div>
                     <!-- FIM CONVERSAS -->
-                </div>
+                    </div>
                 <!-- FIM MENU -->
 
                 <!-- CONVERSA SELECIONADA -->
                 <div>
-                    <div class="contat-info d-flex align-content-center">
+                    <div class="contat-info d-flex justify-content-between" id="contat-info">
                         <div class=" d-flex contact-name align-items-center mb-3">
                             <div>
-                                <img src="/media/{{ logo|safe }}" alt="" class="ms-2 logos"
-                                style="border-radius: 3rem; width: 3rem; max-height: 3rem;">
+                                <img src="/media/{{ chat_image }}" alt="" class="ms-2 logos"
+                                    style="border-radius: 3rem; width: 3rem; max-height: 3rem;">
                             </div>
+
                             <div class="d-flex flex-column ms-3">
                                 <p style="margin-bottom: 0 !important; font-size: 30px;">{{ group_name }}</p>
                                 <div class="d-flex">
@@ -113,6 +112,10 @@
                                     {% endfor %}
                                 </div>
                             </div>
+                        </div>
+                        <div title="Editar Grupo" class="d-flex justify-content-end me-4" style="cursor: pointer;">
+                            <i class="fa-solid fa-pen-to-square fa-xl" style="color: #ffd43b;" data-bs-toggle="modal"
+                                data-bs-target="#exampleModal2"></i>
                         </div>
                     </div>
 
@@ -125,7 +128,7 @@
 
                     <!-- FIM MENSAGENS -->
                     <!-- DIGITAR MENSAGEM -->
-                    <div class="d-flex message">
+                    <div class="d-flex message" id="digitarMensagem">
                         <a class="btn anexo">
                             <i class="fa-solid fa-paperclip fa-xl" style="color: #ffd43b;"></i>
                         </a>
@@ -138,8 +141,8 @@
                                                 padding-left: 12px !important;" placeholder="Mensagem..."
                             name="message">
 
-                            <!-- NOME DO ARQUIVO -->
-                            <div id="file-name-placeholder" style="color: white; "></div>
+                        <!-- NOME DO ARQUIVO -->
+                        <div id="file-name-placeholder" style="color: white; "></div>
 
                         <!-- ENVIAR -->
                         <button class="btn" id="sendMessage">
@@ -165,9 +168,10 @@
                 </div>
                 <div class="modal-body">
                     <form id="form-modal">
+                        <input type="hidden" id="user" value="{{ user.id }}" name="user">
                         <div class="mb-3">
                             <label for="recipient-name" class="col-form-label">Nome da conversa:</label>
-                            <input type="text" class="form-control" id="recipient-name" name="nome_conversa">
+                            <input type="text" class="form-control" id="recipient-name" name="nome_conversa" required>
                         </div>
                         <div class="d-flex flex-column mb-3">
                             <label for="message-text" class="col-form-label">Participantes:</label>
@@ -182,7 +186,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="message-text" class="col-form-label">Foto da conversa:</label>
-                            <input type="file" class="form-control" id="message-text" name="chat_logo">
+                            <input type="file" class="form-control" id="message-text" name="chat_logo" required>
                         </div>
                     </form>
                 </div>
@@ -194,6 +198,53 @@
         </div>
     </div>
     <!-- FIM MODAL -->
+
+    <!-- MODAL EDITAR CONVERSA -->
+    <div class="modal fade" id="exampleModal2" tabindex="-1" aria-labelledby="exampleModalLabel2" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="d-flex flex-column">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel2">Editar Chat</h1>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formEdit">
+                        <div class="d-flex flex-column mb-3">
+                            <div class="mb-3">
+                                <label for="recipient-name" class="col-form-label">Nome da conversa:</label>
+                                <input type="text" class="form-control" id="recipient-name" name="group_name"
+                                    placeholder="{{ group_name }}">
+                            </div>
+                            <label for="message-text" class="col-form-label">Participantes:</label>
+                            <select class="js-example-basic-multiple aaa form-control mt-1" name="states[]"
+                                multiple="multiple" id="selectUsuarios2">
+                                {% for user in users %}
+                                <option value="{{ user.id }}" {% if user in editChat %}selected{% else %}not-selected{% endif %}>
+                                    {{ user.username }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="mb-3">
+                                <label for="message-text" class="col-form-label">Foto da conversa:</label>
+                                <input type="file" class="form-control" id="message-text" name="group_image" >
+                            </div>
+                    </form>
+            </div>
+            <div class="modal-footer">
+                    <button type="button" class="btn" title="Excluir conversa" id="btnDelete">
+                        <i class="fa-solid fa-trash fa-xl" style="color: #df2a2a;"></i>
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary" id="btnEdit">Salvar</button>
+            </div>
+        </div>
+    </div>
+    </div>
+    <!-- FIM MODAL -->
+
+
 </body>
 
 {{ user_logged|json_script:"user_logado" }}
@@ -211,13 +262,13 @@
 <!-- SELECT2 -->
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <!-- JS -->
-<script src="../../static/js/chat.js"></script>
+<script src="{% static 'js/chat.js' %}"></script>
 <script>
     $('#exampleModal #create').click(function () {
         let form_modal = $('#exampleModal #form_modal').serializeArray();
         console.log(form_modal);
     });
-        // console.log($('#select').select2().serialize());
+    // console.log($('#select').select2().serialize());
 </script>
 
 </html>

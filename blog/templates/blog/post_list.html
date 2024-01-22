@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- ICON  -->
-    <link rel="shortcut icon" href="../../static/images/PROMOVA-ILIMITADA.png" type="image/x-icon">
+    <link rel="shortcut icon" href="{% static 'images/PROMOCLICK.ico' %}" type="image/x-icon">
 
     <!-- CSS  -->
     <link rel="stylesheet" href="{% static 'css/reset.css' %}" />
@@ -25,15 +25,19 @@
 
     <!-- SWEETALERT  -->
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.20/dist/sweetalert2.min.css" rel="stylesheet">
-    <title>PromoBlog</title>
+    {% if unread_messages > 0 %}
+    <title>IntraNet (1)</title>
+    {% else %}
+    <title>IntraNet</title>
+    {% endif %}
 </head>
 
-<body>
+<body class="dark-theme">
     {% if user.is_authenticated %}
     <input type="hidden" id="user" value="{{ user_logged }}">
     {% endif %}
-    <div class="container-main">
-        <div class="container-main--nav">
+    <div class="container-main ">
+        <div class="container-main--nav " id="teste">
             <div id="btn-colapse">
                 <button id="toggleButton" class="btn btn-secondary">
                     <i class="fa-solid fa-bars" id="icon"></i>
@@ -42,11 +46,15 @@
             <div id="sidebar" class="menu">
                 <!-- SIDEBAR -->
                 <!-- HEAD SIDEBAR -->
-                <div class="header-sidebar">
+                <div class="header-sidebar ms-4">
+                    <button class="btn pt-3" id="switch-btn" style="position: relative; left: 93vw !important;">
+                        <i class="fa-solid fa-moon fa-xl" style="color: #ffffff;"></i>
+                    </button>
                     <div id="head-sidebar">
                         <div class="d-flex align-items-center" id="log">
-                            <img src="{% static 'images/PROMOVA-ILIMITADA.png' %}" alt="">
-                            <p>PromoBlog</p>
+                            <!-- <img src="{% static 'images/click-logo.png' %}" alt="" style="width: 5rem !important; height: 3rem !important;"> -->
+                            <img src="{% static 'images/PROMOVA-ILIMITADA.png' %}" alt="" style="width: 3rem !important; height: 3rem !important;">
+                            <p>IntraNet</p>
                         </div>
                     </div>
                     {% if user.is_authenticated %}
@@ -62,7 +70,7 @@
 
                 <!-- SITES INTERNOS -->
                 {% if user.is_authenticated%}
-                <div class="section-sidebar">
+                <div class="section-sidebar ms-4 ">
                     <li title="Sites Internos" id="sites-drop" class="nav-item dropdown mb-4 list">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                             aria-expanded="false">
@@ -73,7 +81,7 @@
                             <!-- PAUTA.ME -->
                             <li>
                                 <a class="dropdown-item" href="https://app.pauta.me/promova" target="_blank">
-                                    <p>Pauta.me</p>
+                                    Pauta.me
                                 </a>
                             </li>
                             <!-- FIM PAUTA.ME -->
@@ -81,21 +89,21 @@
                             <li>
                                 <a class="dropdown-item" href="https://producao.universopromova.com.br/"
                                     target="_blank">
-                                    <p>Produção</p>
+                                    Produção
                                 </a>
                             </li>
                             <!-- FIM PRODUÇÃO -->
                             <!-- SG PROMO -->
                             <li>
                                 <a class="dropdown-item" href="https://sgpromo.promoclick.digital/" target="_blank">
-                                    <p>SG Promo</p>
+                                    SG Promo
                                 </a>
                             </li>
                             <!-- FIM SG PROMO -->
                             <!-- STOQ -->
                             <li>
                                 <a class="dropdown-item" href="https://stoq.promoclick.digital/" target="_blank">
-                                    <p>STOQ</p>
+                                    STOQ
                                 </a>
                             </li>
                             <!-- FIM STOQ -->
@@ -103,7 +111,7 @@
                     </li>
                     <!-- FIM SITES INTERNOS -->
                     {% else %}
-                    <div class="section-sidebar mt-5">
+                    <div class="section-sidebar mt-5 ms-3">
                         <li title="Sites Internos" id="sites-drop" class="nav-item dropdown mb-4 list">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                                 aria-expanded="false">
@@ -159,12 +167,12 @@
                                     <a class="dropdown-item" href="mailto:suporte@promoclick.digital">Abrir chamado</a>
                                     <!-- <a class="dropdown-item" href="#" target="_blank" data-bs-toggle="modal"
                                         data-bs-target="#abrir_chamado" data-bs-whatever="@mdo">Abrir chamado</a> -->
-                                    </li>
+                                </li>
                             </ul>
                         </li>
                         <!-- FIM SUPORTE -->
                         {% if user.is_authenticated %}
-                        {% if user.is_superuser %}
+                        {% if user.is_staff %}
                         <!-- NOVO POST -->
                         <li title="Novo Post" class="list">
                             <a href="/admin/blog/post/add/">
@@ -175,14 +183,21 @@
                         {% endif %}
                         <!-- CHAT -->
                         <li title="Bate-papo" class="list">
-                            <a href="/chat">
+                            <a href="/ws/chat">
                                 <i class="fa-solid fa-comment-dots" style="color: #ffffff;"></i>
+                                {% if unread_messages > 0 %}
+                                <span class="ms-3" style="color: #ffffff">
+                                    Bate-papo
+                                    <i class="fa-solid fa-circle fa-2xs" style="color: #fa0000;"></i>
+                                </span>
+                                {% else %}
                                 <span class="ms-3" style="color: #ffffff">Bate-papo</span>
+                                {% endif %}
                             </a>
                         </li>
                         <!-- LOGOFF -->
                         <li title="Logoff" class="list">
-                            <a href="/accounts/logout/?next=/">
+                            <a href="/accounts/logout/?next=/" style="cursor: pointer;">
                                 <i class="fa-solid fa-right-from-bracket fa-rotate-180" style="color: #ffffff;"></i>
                                 <span class="ms-3" style="color: #ffffff">Desconectar</span>
                             </a>
@@ -190,7 +205,7 @@
 
                         {% else %}
                         <!-- LOGIN -->
-                        <li title="RH" class="mt-4">
+                        <li title="Login" class="mt-4" id="login">
                             <a href="/accounts/login/">
                                 <i class="fa-solid fa-right-from-bracket" style="color: #ffffff;"></i>
                                 <span class="ms-3" style="color: #ffffff">Login</span>
@@ -198,26 +213,27 @@
                         </li>
                         {% endif %}
                     </div>
-                    <div class="footer-sidebar">
-                        <div id="powered" class="d-flex flex-column align-items-center mb-3">
-                            <p style="color: #97979e !important;">Desenvolvido por&nbsp;</p>
-                            <a href="https://www.instagram.com/promoclickdigital/" style="color: #118fff;"
-                                target="_blank">Promoclick</a>
+                    <div class="footer-sidebar" style="padding: 0 0 0 1.2rem; margin-top: 5rem;">
+                        <div id="powered" class="d-flex flex-column align-items-center" >
+                            <!-- <p style="color: #97979e !important;">Desenvolvido por&nbsp;</p> -->
+                            <a href="https://www.promoclick.digital/" target="_blank" style="width: 14vw;" id="promoclick-logo">
+                            </a>
                         </div>
                     </div>
                 </div>
                 <!-- FIM SIDEBAR -->
             </div>
+            
             <div class="container-main--sections">
                 {% for post in posts %}
-                <div id="conteudo">
-                    <div id="context">
-                        <div id="card-image" class="mb-4">
+                <div id="conteudo" >
+                    <div id="context" class="conteudos contDark">
+                        <div id="card-image" class="mb-4 ms-3 mt-3">
                             <a href="post/{{ post.id }}/">
                                 <img src="/media/{{ post.image }}" alt="">
                             </a>
                         </div>
-                        <div id="grid">
+                        <div id="grid" class="ms-2">
                             <div id="card-title">
                                 <a href="post/{{ post.id }}/">
                                     <h3>{{ post.title }}</h3>
@@ -239,43 +255,6 @@
         </div>
     </div>
 
-    <!-- MODAL NOVO CHAMADO -->
-    <div class="modal fade" id="abrir_chamado" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="abrir_chamado">Abrir chamado para o suporte</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="formEmail" enctype="multipart/form-data">
-                        {% csrf_token %}
-
-                        <input type="hidden" name="remetente" value="{{ user.email }}">
-                        <div class="mb-3">
-                            <label for="recipient-name" class="col-form-label">Assunto:</label>
-                            <input type="text" class="form-control" id="recipient-name" name="assunto" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="message-text" class="col-form-label">Anexo:</label>
-                            <input type="file" class="form-control" id="message-text" name="anexo">
-                        </div>
-                        <div class="mb-3">
-                            <label for="recipient-name" class="col-form-label">Mensagem:</label>
-                            <textarea type="text" class="form-control" id="recipient-name" name="mensagem_corpo"
-                                style="height: 10rem;" placeholder="Não se esqueça de se identificar"
-                                required></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                    <button type="button" class="btn btn-primary" id="modalButton">Abrir chamado</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- FIM MODAL -->
 </body>
 
 {{ user_logged|json_script:"user_logado" }}
@@ -290,5 +269,6 @@
     crossorigin="anonymous"></script>
 <!-- JS  -->
 <script src="{% static 'js/script.js' %}"></script>
+<script src="{% static 'js/switch.js' %}"></script>
 
 </html>

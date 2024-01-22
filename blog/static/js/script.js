@@ -2,6 +2,10 @@
     document.getElementById("user_logado").textContent
     );
 
+    document.addEventListener('DOMContentLoaded', function() {
+        // Agora você pode chamar newMessages aqui
+        newMessages();
+    });
 
     document.addEventListener('DOMContentLoaded', function() {
         $('#toggleButton').click(function() {
@@ -55,4 +59,5 @@
             });
         });
     });
+    
     

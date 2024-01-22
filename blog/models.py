@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+import os
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from ckeditor.fields import RichTextField
@@ -33,10 +34,12 @@ class Post(models.Model):
         verbose_name_plural = 'Posts'
         db_table = 'blog_post'
 
+
 class Chat(models.Model):
     participants = models.ManyToManyField(User, related_name='chats', verbose_name='Participantes')
     type_chat = models.CharField(default='chat', choices=(('chat','chat'), ('group', 'group')), max_length=200, verbose_name='Tipo de chat')
-    chat_logo = models.ImageField(upload_to='media/logo/', null=True, verbose_name='Imagem')
+    chat_logo = models.ImageField(upload_to='logo/', blank=True, verbose_name='Imagem')
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, default=19)
     group_name = models.CharField(max_length=200, verbose_name='Nome do grupo')
     created_date = models.DateTimeField(default=timezone.now, verbose_name='Data de criação')
     updated_date = models.DateTimeField(auto_now=True, verbose_name='Data de atualização')
@@ -46,6 +49,12 @@ class Chat(models.Model):
         if last_message:
             return last_message.updated_date
         return None
+
+    def save(self, *args, **kwargs):
+        if not self.chat_logo:
+            self.chat_logo.name = 'media/logo/default-icon.jpg'
+        super().save(*args, **kwargs)
+
 
 class Message(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='Usuário')
@@ -67,7 +76,3 @@ class Message(models.Model):
     def __str__(self):
         return f'Mensagem por {self.user} em {self.created_date}'
 
-@receiver(post_save, sender=Message)
-def update_chat_updated_date(sender, instance, **kwargs):
-    instance.chat.updated_date = timezone.now()
-    instance.chat.save()
